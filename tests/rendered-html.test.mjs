@@ -119,6 +119,11 @@ test("uses a bounded participant dropdown and a cross for recorded rejection", a
 
   assert.match(page, /className="participant-dropdown"/);
   assert.match(page, /Array\.from\(\{ length: 36 \}/);
+  assert.match(page, /handleParticipantIdChange/);
+  assert.match(page, /onChange=\{\(event\) => handleParticipantIdChange\(Number\(event\.target\.value\)\)\}/);
+  assert.match(page, /setParticipantId\(nextParticipantId\)/);
+  assert.match(page, /setTaskState\(emptyTaskState\(\)\)/);
+  assert.match(page, /setLogs\(\[\]\)/);
   assert.match(page, /decision === "reject" \? "×" : "✓"/);
 });
 

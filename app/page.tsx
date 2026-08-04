@@ -907,6 +907,19 @@ export default function Home() {
     window.localStorage.removeItem(STORAGE_KEY);
   };
 
+  const handleParticipantIdChange = (nextParticipantId: number) => {
+    if (nextParticipantId === participantId) return;
+
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setParticipantId(nextParticipantId);
+    setStartedAt(null);
+    setCompletedAt(null);
+    setTaskState(emptyTaskState());
+    setLogs([]);
+    setPlayingCue(null);
+  };
+
   const exportCsv = () => {
     const header = [
       "participant_id",
@@ -972,7 +985,7 @@ export default function Home() {
             <select
               className="participant-dropdown"
               value={participantId}
-              onChange={(event) => setParticipantId(Number(event.target.value))}
+              onChange={(event) => handleParticipantIdChange(Number(event.target.value))}
               aria-label="Participant ID"
             >
               {Array.from({ length: 36 }, (_, index) => index + 1).map((id) => (
