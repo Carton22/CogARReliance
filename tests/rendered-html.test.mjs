@@ -156,6 +156,14 @@ test("supports real-time Google Sheets event sync", async () => {
   assert.match(page, /stepName/);
   assert.match(script, /function doPost\(event\)/);
   assert.match(script, /function doGet\(\)/);
+  assert.match(script, /participantSheetName/);
+  assert.match(script, /insertSheet/);
   assert.match(script, /appendRow/);
   assert.match(script, /participant_id/);
+  assert.match(script, /"step"/);
+  assert.doesNotMatch(script, /"task"/);
+  assert.doesNotMatch(script, /"recorded_at_iso"/);
+  assert.doesNotMatch(script, /"log_id"/);
+  assert.doesNotMatch(script, /"elapsed_seconds"/);
+  assert.doesNotMatch(script, /"elapsed_label"/);
 });

@@ -1,30 +1,42 @@
 const HEADERS = [
-  "recorded_at_iso",
-  "log_id",
   "participant_id",
   "plan_id",
   "plan",
-  "task",
+  "step",
   "step_name",
   "action",
   "detail",
   "event_timestamp_iso",
-  "elapsed_seconds",
-  "elapsed_label",
 ];
+
+function participantSheetName(participantId) {
+  const numericId = Number(participantId) || 0;
+  return `P${String(numericId).padStart(2, "0")}`;
+}
+
+function sheetForParticipant(spreadsheet, participantId) {
+  const name = participantSheetName(participantId);
+  return spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
+}
+
+function ensureHeaders(sheet) {
+  const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
+  const currentHeaders = headerRange.getValues()[0];
+  const needsHeaders = currentHeaders.some((cell, index) => cell !== HEADERS[index]);
+
+  if (needsHeaders) {
+    headerRange.setValues([HEADERS]);
+  }
+}
 
 function doPost(event) {
   const payload = JSON.parse(event.postData.contents || "{}");
   const row = payload.row || {};
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = sheetForParticipant(spreadsheet, row.participant_id);
 
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(HEADERS);
-  }
-
+  ensureHeaders(sheet);
   sheet.appendRow([
-    new Date().toISOString(),
-    row.log_id || "",
     row.participant_id || "",
     row.plan_id || "",
     row.plan || "",
@@ -33,8 +45,6 @@ function doPost(event) {
     row.action || "",
     row.detail || "",
     row.event_timestamp_iso || "",
-    row.elapsed_seconds || 0,
-    row.elapsed_label || "",
   ]);
 
   return ContentService
