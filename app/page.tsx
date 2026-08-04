@@ -8,20 +8,13 @@ import {
   useState,
 } from "react";
 
-type Reliance = "app-rely" | "over-rely" | "under-rely" | "app-reject";
+type Decision = "accept" | "reject";
 type PlanId = "sandwich" | "shelf" | "boba" | "table";
 type CueKind = "correct" | "incorrect";
 
 type TaskState = {
   audioPlays: number;
-  userActStartAt?: string;
-  userActStartElapsed?: number;
-  userActEndAt?: string;
-  userActEndElapsed?: number;
-  // Legacy fields from the previous single "Final act" control.
-  finalAt?: string;
-  finalElapsed?: number;
-  reliance?: Reliance;
+  decision?: Decision;
 };
 
 type LogEntry = {
@@ -555,13 +548,6 @@ const plans: Plan[] = [
   },
 ];
 
-const relianceOptions: { key: Reliance; label: string; short: string }[] = [
-  { key: "app-rely", label: "Appropriate reliance", short: "App Rely" },
-  { key: "over-rely", label: "Over reliance", short: "Over Rely" },
-  { key: "under-rely", label: "Under reliance", short: "Under Rely" },
-  { key: "app-reject", label: "Appropriate rejection", short: "App Reject" },
-];
-
 const STORAGE_KEY = "cogar-control-console-v2";
 
 function formatElapsed(totalSeconds: number) {
@@ -642,9 +628,7 @@ export default function Home() {
           ...emptyTaskState(),
           ...(restored.taskState ?? {}),
         });
-        setLogs(
-          (restored.logs ?? []).filter((entry) => entry.action === "AI audio"),
-        );
+        setLogs(restored.logs ?? []);
       }
       setHydrated(true);
     });
@@ -679,20 +663,8 @@ export default function Home() {
   const elapsed = startedAt
     ? Math.max(0, Math.floor(((completedAt ?? now) - startedAt) / 1000))
     : 0;
-  const actStarted = Object.values(activeState).filter(
-    (item) => item.userActStartAt,
-  ).length;
-  const actEnded = Object.values(activeState).filter(
-    (item) => item.userActEndAt ?? item.finalAt,
-  ).length;
-  const classified = Object.values(activeState).filter(
-    (item) => item.reliance,
-  ).length;
-  const progress = Math.round(
-    ((actStarted + actEnded + classified) /
-      (activePlan.tasks.length * 3)) *
-      100,
-  );
+  const recorded = Object.values(activeState).filter((item) => item.decision).length;
+  const progress = Math.round((recorded / activePlan.tasks.length) * 100);
 
   const handleSessionAction = () => {
     audioRef.current?.pause();
@@ -804,45 +776,21 @@ export default function Home() {
     }
   };
 
-  const markUserActStart = (planId: PlanId, taskNumber: number) => {
-    const timestamp = new Date().toISOString();
-    const elapsedAtAction = startedAt
-      ? Math.max(
-          0,
-          Math.floor((new Date().getTime() - startedAt) / 1000),
-        )
-      : 0;
-    updateTask(planId, taskNumber, (current) => ({
-      ...current,
-      userActStartAt: timestamp,
-      userActStartElapsed: elapsedAtAction,
-    }));
-  };
-
-  const markUserActEnd = (planId: PlanId, taskNumber: number) => {
-    const timestamp = new Date().toISOString();
-    const elapsedAtAction = startedAt
-      ? Math.max(
-          0,
-          Math.floor((new Date().getTime() - startedAt) / 1000),
-        )
-      : 0;
-    updateTask(planId, taskNumber, (current) => ({
-      ...current,
-      userActEndAt: timestamp,
-      userActEndElapsed: elapsedAtAction,
-    }));
-  };
-
-  const markReliance = (
+  const markDecision = (
     planId: PlanId,
     taskNumber: number,
-    reliance: Reliance,
+    decision: Decision,
   ) => {
     updateTask(planId, taskNumber, (current) => ({
       ...current,
-      reliance,
+      decision,
     }));
+    addLog(
+      planId,
+      taskNumber,
+      decision === "accept" ? "AI accepted" : "AI rejected",
+      "AI instruction decision",
+    );
   };
 
   const goToPlan = (nextIndex: number) => {
@@ -1060,9 +1008,7 @@ export default function Home() {
                 <span style={{ width: `${progress}%` }} />
               </div>
               <p>
-                {actStarted}/{activePlan.tasks.length} started · {actEnded}/
-                {activePlan.tasks.length} ended · {classified}/
-                {activePlan.tasks.length} classified
+                {recorded}/{activePlan.tasks.length} decisions recorded
               </p>
             </div>
           </section>
@@ -1083,13 +1029,8 @@ export default function Home() {
                     </span>
                   </div>
                   <div role="columnheader">AI audio</div>
-                  <div role="columnheader">User act start</div>
-                  <div role="columnheader">User act end</div>
-                  {relianceOptions.map((option) => (
-                    <div role="columnheader" key={option.key}>
-                      {option.short}
-                    </div>
-                  ))}
+                  <div role="columnheader">Accept</div>
+                  <div role="columnheader">Reject</div>
                 </div>
 
                 {activePlan.tasks.map((task, index) => {
@@ -1097,11 +1038,7 @@ export default function Home() {
                   const state = activeState[taskNumber] ?? { audioPlays: 0 };
                   return (
                     <div
-                      className={`matrix-row ${
-                        (state.userActEndAt ?? state.finalAt)
-                          ? "is-complete"
-                          : ""
-                      }`}
+                      className={`matrix-row ${state.decision ? "is-complete" : ""}`}
                       role="row"
                       key={`${task.name}-${taskNumber}`}
                     >
@@ -1219,92 +1156,27 @@ export default function Home() {
                         </small>
                       </div>
 
-                      <div role="cell" className="action-cell">
-                        <button
-                          type="button"
-                          className={`circle-button act-start-button ${
-                            state.userActStartAt ? "is-selected" : ""
-                          }`}
-                          onClick={() =>
-                            markUserActStart(activePlan.id, taskNumber)
-                          }
-                          aria-label={`Mark user act start timestamp for task ${taskNumber}`}
-                          aria-pressed={Boolean(state.userActStartAt)}
-                          title="Mark user act start"
-                          data-testid={`${activePlan.id}-act-start-${taskNumber}`}
-                        >
-                          <span aria-hidden="true">
-                            {state.userActStartAt ? "✓" : "＋"}
-                          </span>
-                        </button>
-                        <small>
-                          {state.userActStartAt
-                            ? formatClock(state.userActStartAt)
-                            : "Mark"}
-                        </small>
-                      </div>
-
-                      <div role="cell" className="action-cell">
-                        <button
-                          type="button"
-                          className={`circle-button act-end-button ${
-                            state.userActEndAt ?? state.finalAt
-                              ? "is-selected"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            markUserActEnd(activePlan.id, taskNumber)
-                          }
-                          aria-label={`Mark user act end timestamp for task ${taskNumber}`}
-                          aria-pressed={Boolean(
-                            state.userActEndAt ?? state.finalAt,
-                          )}
-                          title="Mark user act end"
-                          data-testid={`${activePlan.id}-act-end-${taskNumber}`}
-                        >
-                          <span aria-hidden="true">
-                            {state.userActEndAt ?? state.finalAt ? "✓" : "＋"}
-                          </span>
-                        </button>
-                        <small>
-                          {state.userActEndAt ?? state.finalAt
-                            ? formatClock(state.userActEndAt ?? state.finalAt)
-                            : "Mark"}
-                        </small>
-                      </div>
-
-                      {relianceOptions.map((option) => {
-                        const selected = state.reliance === option.key;
+                      {(["accept", "reject"] as const).map((decision) => {
+                        const selected = state.decision === decision;
+                        const label = decision === "accept" ? "Accept" : "Reject";
                         return (
-                          <div
-                            role="cell"
-                            className="action-cell"
-                            key={option.key}
-                          >
+                          <div role="cell" className="action-cell" key={decision}>
                             <button
                               type="button"
-                              className={`circle-button reliance-button ${
+                              className={`circle-button decision-button decision-${decision} ${
                                 selected ? "is-selected" : ""
                               }`}
                               onClick={() =>
-                                markReliance(
-                                  activePlan.id,
-                                  taskNumber,
-                                  option.key,
-                                )
+                                markDecision(activePlan.id, taskNumber, decision)
                               }
-                              aria-label={`${option.label} for task ${taskNumber}`}
+                              aria-label={`${label} AI instruction for task ${taskNumber}`}
                               aria-pressed={selected}
-                              title={option.label}
-                              data-testid={`${activePlan.id}-${option.key}-${taskNumber}`}
+                              title={`${label} AI instruction`}
+                              data-testid={`${activePlan.id}-${decision}-${taskNumber}`}
                             >
-                              <span aria-hidden="true">
-                                {selected ? "✓" : ""}
-                              </span>
+                              <span aria-hidden="true">{selected ? "✓" : ""}</span>
                             </button>
-                            <small>
-                              {selected ? "Selected" : option.short}
-                            </small>
+                            <small>{selected ? "Recorded" : label}</small>
                           </div>
                         );
                       })}

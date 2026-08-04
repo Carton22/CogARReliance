@@ -465,13 +465,13 @@ h2 {
 }
 
 .matrix {
-  min-width: 1340px;
+  min-width: 900px;
 }
 
 .matrix-header,
 .matrix-row {
   display: grid;
-  grid-template-columns: minmax(530px, 2.8fr) repeat(7, minmax(102px, 0.7fr));
+  grid-template-columns: minmax(530px, 2.8fr) repeat(3, minmax(102px, 0.7fr));
   align-items: stretch;
 }
 
@@ -737,22 +737,27 @@ h2 {
   font-size: 12px;
 }
 
-.act-start-button.is-selected {
-  border-color: var(--orange);
-  background: var(--orange);
+.decision-accept {
+  border-color: #3d9a62;
+  color: #3d9a62;
+}
+
+.decision-reject {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.decision-accept.is-selected {
+  border-color: #3d9a62;
+  background: #3d9a62;
+  box-shadow: 0 0 0 5px rgba(61, 154, 98, 0.12);
   color: white;
 }
 
-.act-end-button.is-selected {
+.decision-reject.is-selected {
   border-color: var(--coral);
   background: var(--coral);
-  color: white;
-}
-
-.reliance-button.is-selected {
-  border-color: var(--navy);
-  background: var(--navy);
-  box-shadow: 0 0 0 5px rgba(24, 50, 77, 0.09);
+  box-shadow: 0 0 0 5px rgba(240, 100, 73, 0.12);
   color: white;
 }
 

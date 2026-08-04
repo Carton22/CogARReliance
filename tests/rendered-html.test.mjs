@@ -89,3 +89,16 @@ test("keeps the loading skeleton scoped and disposable", async () => {
     access(new URL("public/_sites-preview", templateRoot)),
   );
 });
+
+test("uses AI audio, Accept, and Reject as the matrix decision columns", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /<div role="columnheader">AI audio<\/div>/);
+  assert.match(page, /<div role="columnheader">Accept<\/div>/);
+  assert.match(page, /<div role="columnheader">Reject<\/div>/);
+  assert.match(page, /markDecision\(/);
+  assert.doesNotMatch(
+    page,
+    /User act start|User act end|App Rely|Over Rely|Under Rely|App Reject/,
+  );
+});
