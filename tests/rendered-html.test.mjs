@@ -140,3 +140,22 @@ test("injects fixed-order distractors with prompt text matching audio", async ()
   assert.match(page, /const distractor = distractors\[blockIndex\]/);
   assert.doesNotMatch(page, /Play distractor instruction/);
 });
+
+test("supports real-time Google Sheets event sync", async () => {
+  const [page, script] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/google-sheets-sync.gs", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(page, /sheetSyncUrl/);
+  assert.match(page, /Google Sheets sync/);
+  assert.match(page, /fetch\(sheetSyncUrl/);
+  assert.match(page, /mode: "no-cors"/);
+  assert.match(page, /credentials: "include"/);
+  assert.match(page, /DEFAULT_SHEET_SYNC_URL/);
+  assert.match(page, /stepName/);
+  assert.match(script, /function doPost\(event\)/);
+  assert.match(script, /function doGet\(\)/);
+  assert.match(script, /appendRow/);
+  assert.match(script, /participant_id/);
+});

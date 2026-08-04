@@ -837,6 +837,75 @@ h2 {
   letter-spacing: -0.035em;
 }
 
+.log-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sheet-sync-badge {
+  min-width: 142px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fcf9f4;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sheet-sync-badge.is-ready,
+.sheet-sync-badge.is-syncing {
+  border-color: rgba(59, 130, 246, 0.32);
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--blue);
+}
+
+.sheet-sync-badge.is-sent {
+  border-color: rgba(61, 154, 98, 0.32);
+  background: rgba(61, 154, 98, 0.08);
+  color: #2d7c4d;
+}
+
+.sheet-sync-badge.is-failed {
+  border-color: rgba(240, 100, 73, 0.34);
+  background: rgba(240, 100, 73, 0.08);
+  color: var(--coral-deep);
+}
+
+.sheet-sync-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.sheet-sync-field span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sheet-sync-field input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffdf9;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.sheet-sync-field input:focus {
+  border-color: rgba(59, 130, 246, 0.55);
+  outline: 3px solid rgba(59, 130, 246, 0.13);
+}
+
 .export-button {
   border-color: var(--ink);
   background: var(--ink);

@@ -21,7 +21,9 @@ type LogEntry = {
   id: string;
   participantId: number;
   planId: PlanId;
+  planTitle: string;
   task: number;
+  stepName: string;
   action: string;
   detail: string;
   timestamp: string;
@@ -50,6 +52,8 @@ type Plan = {
 };
 
 const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const DEFAULT_SHEET_SYNC_URL =
+  "https://script.google.com/a/macros/umn.edu/s/AKfycbz_nqJuXk07t0STgh1aKmajbJ3Af7RXAnc4iPe8ddQvqh_eaOUUbOIdoTO-7OyygQS6gw/exec";
 
 const shelfCorrectSteps = [
   "Classify the pieces based on color",
@@ -603,6 +607,10 @@ export default function Home() {
   const [taskState, setTaskState] =
     useState<Record<PlanId, Record<number, TaskState>>>(emptyTaskState);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [sheetSyncUrl, setSheetSyncUrl] = useState(DEFAULT_SHEET_SYNC_URL);
+  const [sheetSyncStatus, setSheetSyncStatus] = useState<
+    "off" | "ready" | "syncing" | "sent" | "failed"
+  >("ready");
   const [playingCue, setPlayingCue] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -622,6 +630,7 @@ export default function Home() {
           startedAt?: number | null;
           completedAt?: number | null;
           participantId?: number;
+          sheetSyncUrl?: string;
           taskState?: Record<PlanId, Record<number, TaskState>>;
           logs?: LogEntry[];
         }
@@ -644,6 +653,10 @@ export default function Home() {
         setCompletedAt(restored.completedAt ?? null);
         if (restored.participantId && restored.participantId >= 1 && restored.participantId <= 36) {
           setParticipantId(restored.participantId);
+        }
+        if (restored.sheetSyncUrl) {
+          setSheetSyncUrl(restored.sheetSyncUrl);
+          setSheetSyncStatus("ready");
         }
         setTaskState({
           ...emptyTaskState(),
@@ -669,11 +682,12 @@ export default function Home() {
         startedAt,
         completedAt,
         participantId,
+        sheetSyncUrl,
         taskState,
         logs,
       }),
     );
-  }, [activePlanIndex, completedAt, hydrated, logs, participantId, startedAt, taskState]);
+  }, [activePlanIndex, completedAt, hydrated, logs, participantId, sheetSyncUrl, startedAt, taskState]);
 
   useEffect(() => {
     return () => {
@@ -687,6 +701,44 @@ export default function Home() {
     : 0;
   const recorded = Object.values(activeState).filter((item) => item.decision).length;
   const progress = Math.round((recorded / activePlan.tasks.length) * 100);
+
+  const syncLogToSheet = async (entry: LogEntry) => {
+    if (!sheetSyncUrl.trim()) {
+      setSheetSyncStatus("off");
+      return;
+    }
+
+    setSheetSyncStatus("syncing");
+    try {
+      await fetch(sheetSyncUrl.trim(), {
+        method: "POST",
+        mode: "no-cors",
+        credentials: "include",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify({
+          source: "cogar-study-console",
+          row: {
+            log_id: entry.id,
+            participant_id: entry.participantId,
+            plan_id: entry.planId,
+            plan: entry.planTitle,
+            task: entry.task,
+            step_name: entry.stepName,
+            action: entry.action,
+            detail: entry.detail,
+            event_timestamp_iso: entry.timestamp,
+            elapsed_seconds: entry.elapsed,
+            elapsed_label: formatElapsed(entry.elapsed),
+          },
+        }),
+      });
+      setSheetSyncStatus("sent");
+    } catch {
+      setSheetSyncStatus("failed");
+    }
+  };
 
   const handleSessionAction = () => {
     audioRef.current?.pause();
@@ -731,19 +783,23 @@ export default function Home() {
           Math.floor((new Date().getTime() - startedAt) / 1000),
         )
       : 0;
-    setLogs((current) => [
-      {
-        id: crypto.randomUUID(),
-        participantId,
-        planId,
-        task,
-        action,
-        detail,
-        timestamp,
-        elapsed: elapsedAtAction,
-      },
-      ...current,
-    ]);
+    const plan = activePlan.id === planId
+      ? activePlan
+      : plans.find((item) => item.id === planId)!;
+    const entry: LogEntry = {
+      id: crypto.randomUUID(),
+      participantId,
+      planId,
+      planTitle: plan.title,
+      task,
+      stepName: plan.tasks[task - 1]?.name ?? `Task ${task}`,
+      action,
+      detail,
+      timestamp,
+      elapsed: elapsedAtAction,
+    };
+    setLogs((current) => [entry, ...current]);
+    void syncLogToSheet(entry);
   };
 
   const updateTask = (
@@ -866,9 +922,9 @@ export default function Home() {
       const plan = plans.find((item) => item.id === entry.planId)!;
       return [
         entry.participantId,
-        plan.title,
+        entry.planTitle ?? plan.title,
         entry.task,
-        plan.tasks[entry.task - 1].name,
+        entry.stepName ?? plan.tasks[entry.task - 1].name,
         entry.action,
         entry.detail,
         entry.timestamp,
@@ -1230,15 +1286,33 @@ export default function Home() {
             <p className="eyebrow">LOCAL RECORD · ALL TASKS</p>
             <h3>Event log</h3>
           </div>
-          <button
-            type="button"
-            className="export-button"
-            onClick={exportCsv}
-            disabled={!logs.length}
-          >
-            Export CSV
-          </button>
+          <div className="log-actions">
+            <span className={`sheet-sync-badge is-${sheetSyncStatus}`}>
+              Google Sheets sync · {sheetSyncStatus}
+            </span>
+            <button
+              type="button"
+              className="export-button"
+              onClick={exportCsv}
+              disabled={!logs.length}
+            >
+              Export CSV
+            </button>
+          </div>
         </div>
+        <label className="sheet-sync-field">
+          <span>Google Sheets sync URL</span>
+          <input
+            value={sheetSyncUrl}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSheetSyncUrl(value);
+              setSheetSyncStatus(value.trim() ? "ready" : "off");
+            }}
+            placeholder="Paste deployed Google Apps Script web app URL"
+            aria-label="Google Sheets sync URL"
+          />
+        </label>
         {logs.length ? (
           <div className="log-list" aria-live="polite">
             {logs.slice(0, 8).map((entry) => {
