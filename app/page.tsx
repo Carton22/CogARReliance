@@ -19,6 +19,7 @@ type TaskState = {
 
 type LogEntry = {
   id: string;
+  participantId: number;
   planId: PlanId;
   task: number;
   action: string;
@@ -30,7 +31,6 @@ type LogEntry = {
 type InstructionOption = {
   audioSrc: string;
   text: string;
-  tone?: "blue" | "green";
 };
 
 type Task = {
@@ -50,6 +50,122 @@ type Plan = {
 };
 
 const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+const shelfCorrectSteps = [
+  "Classify the pieces based on color",
+  "Take a yellow piece",
+  "Take a green piece",
+  "Insert a green piece at slot 1 of the yellow piece",
+  "Take a pink piece",
+  "Insert a pink piece at slot 2 of the yellow piece",
+  "Insert another pink piece at slot 3 of the yellow piece",
+  "Insert another pink piece at slot 4 of the yellow piece",
+  "Take a green piece",
+  "Align the orientations of the 2 green pieces",
+  "Insert a green piece at slot 5 of the yellow piece",
+  "Take a yellow piece",
+  "Insert another yellow piece on the right of green and pink pieces mirroring the 1st yellow panel.",
+  "Take a blue piece",
+  "Insert a blue piece with green and pink pieces",
+];
+
+const bobaCorrectSteps = [
+  "Take a cup",
+  "Add strawberry sugar syrup into the cup",
+  "Add boba into the cup",
+  "Mix boba with the syrup",
+  "Add the yogurt into the cup as a bottom layer",
+  "Take a new cup",
+  "Pour the matcha latte into the new cup",
+  "Pour coconut milk into the matcha latte",
+  "Mix up the matcha and the coconut milk",
+  "Pour mixed matcha milk into the 1st cup",
+  "Throw away the 2nd cup",
+  "Grab the milk cream",
+  "Add cream on top of the 1st cup",
+  "Add matcha powder",
+  "Add a straw",
+];
+
+const shelfDistractorSteps = [
+  "Take a scissors",
+  "Insert a purple piece at slot 3",
+  "Insert a pink piece at slot 5",
+  "Take a black piece",
+  "Take a marker pen",
+];
+
+const bobaDistractorSteps = [
+  "Add white sugar to the cup",
+  "Take one more plate",
+  "Put a piece of lemon on the edge of the cup",
+  "Pour out 25% portion of the first cup into the trash can",
+  "Stir the cup",
+];
+
+function correctTasks(
+  steps: string[],
+  audioFolder: string,
+  audioPrefix: string,
+): Task[] {
+  return steps.map((text, index) => ({
+    name: text,
+    correctOptions: [
+      {
+        text,
+        audioSrc: `/audio/${audioFolder}/${audioPrefix}_${String(index + 1).padStart(2, "0")}.mp3`,
+      },
+    ],
+    mainKind: "correct",
+  }));
+}
+
+function seededRandom(seedText: string) {
+  let seed = 2166136261;
+  for (const character of seedText) {
+    seed ^= character.charCodeAt(0);
+    seed = Math.imul(seed, 16777619);
+  }
+  return () => {
+    seed += 0x6d2b79f5;
+    let value = seed;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function randomizedStudyTasks(planId: "shelf" | "boba", participantId: number) {
+  const correct = planId === "shelf"
+    ? correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf")
+    : correctTasks(bobaCorrectSteps, "boba", "boba");
+  const distractorSteps = planId === "shelf"
+    ? shelfDistractorSteps
+    : bobaDistractorSteps;
+  const random = seededRandom(`${planId}-${participantId}`);
+  const distractors = ["A", "B", "C", "D", "E"];
+  const folder = planId === "shelf" ? "shelf-assembly-distractors" : "boba-distractors";
+  const prefix = planId === "shelf" ? "shelf" : "boba";
+
+  return Array.from({ length: 5 }, (_, blockIndex) => {
+    const block = correct.slice(blockIndex * 3, blockIndex * 3 + 3);
+    const position = blockIndex === 0
+      ? 1 + Math.floor(random() * 3)
+      : Math.floor(random() * 4);
+    const distractor = distractors[blockIndex];
+    const text = distractorSteps[blockIndex];
+    const wrong: Task = {
+      name: text,
+      correctOptions: [],
+      incorrectOptions: [{
+        text,
+        audioSrc: `/audio/${folder}/${prefix}_${distractor}.mp3`,
+      }],
+      mainKind: "incorrect",
+    };
+    return [...block.slice(0, position), wrong, ...block.slice(position)];
+  }).flat();
+}
 
 const plans: Plan[] = [
   {
@@ -141,121 +257,17 @@ const plans: Plan[] = [
     code: "B",
     eyebrow: "WIZARD OF OZ · TASK B",
     title: "Shelf assembly plan",
-    description:
-      "Guide the eight-step yellow-piece assembly, mark the final act, and classify the participant's reliance at each step.",
-    tasks: [
-      {
-        name: "Take the yellow labeled piece (left side)",
-        correctOptions: [
-          {
-            text: "Take a yellow piece",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step01_main_take_yellow_piece.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Insert the bottom at slot 1",
-        correctOptions: [
-          {
-            text: "Take a green piece and insert to slot 1 of the yellow piece",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step02_main_green_slot1.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Insert a mid-layer at slot 2",
-        correctOptions: [],
-        incorrectOptions: [
-          {
-            text: "Insert a green piece into slot 2",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step03_main_green_slot2.mp3",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Insert a mid-layer at slot 3",
-        correctOptions: [
-          {
-            text: "Insert a pink piece to slot 3 of the yellow piece",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step04_main_green_slot3.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Insert a mid-layer at slot 4",
-        correctOptions: [
-          {
-            text: "Insert a pink piece to slot 4 of the yellow piece",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step05_main_green_slot4.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Insert a top-layer at slot 5",
-        correctOptions: [
-          {
-            text: "Insert a pink piece to slot 5 of the yellow piece",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step06_main_red_slot5.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Insert right-layer at the right side",
-        correctOptions: [
-          {
-            text: "Insert a yellow piece on the right side",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step07_alt_yellow_right.mp3",
-          },
-          {
-            text: "replace the green piece slot 2 with the pink piece",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step07_alt_replace_green_red.mp3",
-            tone: "green",
-          },
-        ],
-        incorrectOptions: [
-          {
-            text: "Insert a blue piece (back) on the right side",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step07_main_black_back_right.mp3",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Insert the back",
-        correctOptions: [
-          {
-            text: "Insert a blue piece on the back side",
-            audioSrc:
-              "/audio/yellow-piece-assembly/step08_main_black_back.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-    ],
+    description: "Guide the 15-step shelf assembly and record the participant's decision for every AI instruction.",
+    tasks: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
   },
   {
     id: "boba",
     code: "C",
     eyebrow: "WIZARD OF OZ · TASK C",
     title: "Boba tea plan",
-    description:
-      "Control the ten-step strawberry matcha drink study, including alternative recovery prompts and reliance classification.",
-    tasks: [
+    description: "Guide the 15-step boba tea preparation and record the participant's decision for every AI instruction.",
+    tasks: correctTasks(bobaCorrectSteps, "boba", "boba"),
+    /*
       {
         name: "Take a cup",
         correctOptions: [
@@ -382,6 +394,8 @@ const plans: Plan[] = [
       },
     ],
   },
+  */
+  },
   {
     id: "table",
     code: "D",
@@ -490,7 +504,6 @@ const plans: Plan[] = [
             text: "replace the No.9 with No.6 pieces and connect with No.5 pieces",
             audioSrc:
               "/audio/box-assembly/step08_alt_replace_no9_no6.mp3",
-            tone: "green",
           },
         ],
         mainKind: "correct",
@@ -579,6 +592,7 @@ function emptyTaskState(): Record<PlanId, Record<number, TaskState>> {
 }
 
 export default function Home() {
+  const [participantId, setParticipantId] = useState(1);
   const [activePlanIndex, setActivePlanIndex] = useState(0);
   const [turnDirection, setTurnDirection] = useState<"next" | "previous">(
     "next",
@@ -594,7 +608,10 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const touchStartX = useRef<number | null>(null);
 
-  const activePlan = plans[activePlanIndex];
+  const selectedPlan = plans[activePlanIndex];
+  const activePlan = selectedPlan.id === "shelf" || selectedPlan.id === "boba"
+    ? { ...selectedPlan, tasks: randomizedStudyTasks(selectedPlan.id, participantId) }
+    : selectedPlan;
   const activeState = taskState[activePlan.id] ?? emptyPlanState(activePlan);
 
   useEffect(() => {
@@ -604,6 +621,7 @@ export default function Home() {
           activePlanIndex?: number;
           startedAt?: number | null;
           completedAt?: number | null;
+          participantId?: number;
           taskState?: Record<PlanId, Record<number, TaskState>>;
           logs?: LogEntry[];
         }
@@ -624,6 +642,9 @@ export default function Home() {
         );
         setStartedAt(restored.startedAt ?? null);
         setCompletedAt(restored.completedAt ?? null);
+        if (restored.participantId && restored.participantId >= 1 && restored.participantId <= 36) {
+          setParticipantId(restored.participantId);
+        }
         setTaskState({
           ...emptyTaskState(),
           ...(restored.taskState ?? {}),
@@ -647,11 +668,12 @@ export default function Home() {
         activePlanIndex,
         startedAt,
         completedAt,
+        participantId,
         taskState,
         logs,
       }),
     );
-  }, [activePlanIndex, completedAt, hydrated, logs, startedAt, taskState]);
+  }, [activePlanIndex, completedAt, hydrated, logs, participantId, startedAt, taskState]);
 
   useEffect(() => {
     return () => {
@@ -712,6 +734,7 @@ export default function Home() {
     setLogs((current) => [
       {
         id: crypto.randomUUID(),
+        participantId,
         planId,
         task,
         action,
@@ -830,6 +853,7 @@ export default function Home() {
 
   const exportCsv = () => {
     const header = [
+      "participant_id",
       "plan",
       "task",
       "step",
@@ -841,6 +865,7 @@ export default function Home() {
     const rows = [...logs].reverse().map((entry) => {
       const plan = plans.find((item) => item.id === entry.planId)!;
       return [
+        entry.participantId,
         plan.title,
         entry.task,
         plan.tasks[entry.task - 1].name,
@@ -886,6 +911,19 @@ export default function Home() {
           </div>
         </div>
         <div className="session-tools">
+          <label className="participant-picker">
+            <span>Participant ID</span>
+            <select
+              className="participant-dropdown"
+              value={participantId}
+              onChange={(event) => setParticipantId(Number(event.target.value))}
+              aria-label="Participant ID"
+            >
+              {Array.from({ length: 36 }, (_, index) => index + 1).map((id) => (
+                <option key={id} value={id}>Participant {String(id).padStart(2, "0")}</option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             className={`task-start-button ${
@@ -1024,7 +1062,6 @@ export default function Home() {
                     <span>Task sequence &amp; instructions</span>
                     <span className="cue-legend">
                       <span className="legend-correct">Correct</span>
-                      <span className="legend-recovery">Recovery</span>
                       <span className="legend-incorrect">Incorrect</span>
                     </span>
                   </div>
@@ -1053,8 +1090,6 @@ export default function Home() {
                               <button
                                 type="button"
                                 className={`cue-button cue-correct is-hint-only ${
-                                  option.tone === "green" ? "cue-green" : ""
-                                } ${
                                   playingCue ===
                                   `${activePlan.id}-${taskNumber}-correct-${optionIndex}`
                                     ? "is-playing"
@@ -1174,7 +1209,7 @@ export default function Home() {
                               title={`${label} AI instruction`}
                               data-testid={`${activePlan.id}-${decision}-${taskNumber}`}
                             >
-                              <span aria-hidden="true">{selected ? "✓" : ""}</span>
+                              <span aria-hidden="true">{selected ? (decision === "reject" ? "×" : "✓") : ""}</span>
                             </button>
                             <small>{selected ? "Recorded" : label}</small>
                           </div>

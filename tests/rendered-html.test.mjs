@@ -102,3 +102,41 @@ test("uses AI audio, Accept, and Reject as the matrix decision columns", async (
     /User act start|User act end|App Rely|Over Rely|Under Rely|App Reject/,
   );
 });
+
+test("uses 15-step shelf and boba scripts with participant IDs", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /participantId/);
+  assert.match(page, /Array\.from\(\{ length: 36 \}/);
+  assert.match(page, /shelfCorrectSteps = \[/);
+  assert.match(page, /bobaCorrectSteps = \[/);
+  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf"\)/);
+  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba"\)/);
+});
+
+test("uses a bounded participant dropdown and a cross for recorded rejection", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /className="participant-dropdown"/);
+  assert.match(page, /Array\.from\(\{ length: 36 \}/);
+  assert.match(page, /decision === "reject" \? "×" : "✓"/);
+});
+
+test("injects fixed-order distractors with prompt text matching audio", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /shelfDistractorSteps = \[/);
+  assert.match(page, /"Take a scissors"/);
+  assert.match(page, /"Insert a purple piece at slot 3"/);
+  assert.match(page, /"Insert a pink piece at slot 5"/);
+  assert.match(page, /"Take a black piece"/);
+  assert.match(page, /"Take a marker pen"/);
+  assert.match(page, /bobaDistractorSteps = \[/);
+  assert.match(page, /"Add white sugar to the cup"/);
+  assert.match(page, /"Take one more plate"/);
+  assert.match(page, /"Put a piece of lemon on the edge of the cup"/);
+  assert.match(page, /"Pour out 25% portion of the first cup into the trash can"/);
+  assert.match(page, /"Stir the cup"/);
+  assert.match(page, /const distractor = distractors\[blockIndex\]/);
+  assert.doesNotMatch(page, /Play distractor instruction/);
+});
