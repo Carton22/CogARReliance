@@ -34,14 +34,48 @@ test("initializes and resets the active plan at step zero", async () => {
   assert.match(page.slice(resetStart, resetEnd), /publishActiveProgress\(0\)/);
 });
 
-test("renders only the large progress bar and current over total value", async () => {
+test("renders a participant selector with the large progress display", async () => {
   const progressPage = await readFile(new URL("../app/progress/page.tsx", import.meta.url), "utf8");
   const renderedMarkup = progressPage.slice(progressPage.indexOf("<main"), progressPage.lastIndexOf("</main>") + 7);
   assert.match(progressPage, /role="progressbar"/);
   assert.match(progressPage, /aria-valuemin=\{0\}/);
   assert.match(progressPage, /aria-valuemax=\{progress\.totalSteps\}/);
   assert.match(progressPage, /\{progress\.currentStep\}\/\{progress\.totalSteps\}/);
-  assert.doesNotMatch(renderedMarkup, /<button|<a\b|<select|Participant|plan title|connection|reconnecting/i);
+  assert.match(renderedMarkup, /<select/);
+  assert.match(renderedMarkup, /value=\{participantId\}/);
+  assert.match(renderedMarkup, /Array\.from\(\{ length: 36 \}/);
+  assert.match(renderedMarkup, /formatParticipantLabel\(id\)/);
+  assert.doesNotMatch(renderedMarkup, /<button|<a\b|plan title|connection|reconnecting/i);
+});
+
+test("confirms a different participant before replacing the URL and polling target", async () => {
+  const progressPage = await readFile(new URL("../app/progress/page.tsx", import.meta.url), "utf8");
+  const handlerStart = progressPage.indexOf("const handleParticipantChange");
+  const handlerEnd = progressPage.indexOf("const percentage", handlerStart);
+  const handler = progressPage.slice(handlerStart, handlerEnd);
+
+  assert.ok(handlerStart > 0 && handlerEnd > handlerStart);
+  assert.match(handler, /if \(nextParticipantId === participantId\) return/);
+  assert.match(handler, /window\.confirm/);
+  assert.match(handler, /Switch progress display from \$\{formatParticipantLabel\(participantId\)\} to \$\{formatParticipantLabel\(nextParticipantId\)\}\?/);
+  assert.match(handler, /if \(!confirmed\) return/);
+  assert.match(handler, /window\.history\.replaceState/);
+  assert.match(handler, /participantProgressUrl\(window\.location\.href, nextParticipantId\)/);
+  assert.match(handler, /setParticipantId\(nextParticipantId\)/);
+  assert.ok(handler.indexOf("window.confirm") < handler.indexOf("window.history.replaceState"));
+  assert.ok(handler.indexOf("window.history.replaceState") < handler.indexOf("setParticipantId"));
+});
+
+test("positions the participant selector near the top-right corner", async () => {
+  const css = await readFile(new URL("../app/progress/progress.module.css", import.meta.url), "utf8");
+  const selectorStart = css.indexOf(".participantPicker");
+  const selectorEnd = css.indexOf("}", selectorStart);
+  const selectorRule = css.slice(selectorStart, selectorEnd);
+
+  assert.ok(selectorStart >= 0);
+  assert.match(selectorRule, /position:\s*fixed/);
+  assert.match(selectorRule, /top:/);
+  assert.match(selectorRule, /right:/);
 });
 
 test("polls the requested participant once per second and retains state on failure", async () => {

@@ -8,6 +8,38 @@
   background: #f7f2ea;
 }
 
+.participantPicker {
+  position: fixed;
+  top: clamp(20px, 3vw, 40px);
+  right: clamp(20px, 3vw, 40px);
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  color: #172638;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.participantPicker select {
+  min-width: 164px;
+  min-height: 44px;
+  padding: 0 38px 0 14px;
+  border: 2px solid #18324d;
+  border-radius: 12px;
+  background: #fffdf9;
+  color: #172638;
+  font: inherit;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.participantPicker select:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
 .track {
   width: 100%;
   height: clamp(72px, 12vw, 180px);
@@ -41,6 +73,24 @@
   .display {
     gap: 36px;
     padding: 24px;
+  }
+
+  .participantPicker {
+    top: 16px;
+    right: 16px;
+  }
+
+  .participantPicker span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .participantPicker select {
+    min-width: 148px;
   }
 }
 

@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import {
   fetchProgress,
+  formatParticipantLabel,
   normalizeParticipantId,
+  participantProgressUrl,
   progressPercentage,
   selectNewerProgress,
 } from "../progress-sync.mjs";
@@ -49,9 +51,40 @@ export default function ProgressPage() {
     };
   }, [participantId]);
 
+  const handleParticipantChange = (value: string) => {
+    const nextParticipantId = normalizeParticipantId(value);
+    if (nextParticipantId === participantId) return;
+
+    const confirmed = window.confirm(
+      `Switch progress display from ${formatParticipantLabel(participantId)} to ${formatParticipantLabel(nextParticipantId)}?`,
+    );
+    if (!confirmed) return;
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      participantProgressUrl(window.location.href, nextParticipantId),
+    );
+    setParticipantId(nextParticipantId);
+  };
+
   const percentage = progressPercentage(progress);
   return (
     <main className={styles.display}>
+      <label className={styles.participantPicker}>
+        <span>Participant</span>
+        <select
+          value={participantId}
+          onChange={(event) => handleParticipantChange(event.target.value)}
+          aria-label="Progress participant"
+        >
+          {Array.from({ length: 36 }, (_, index) => index + 1).map((id) => (
+            <option key={id} value={id}>
+              {formatParticipantLabel(id)}
+            </option>
+          ))}
+        </select>
+      </label>
       <div
         className={styles.track}
         role="progressbar"
