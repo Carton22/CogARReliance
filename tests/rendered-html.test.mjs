@@ -54,7 +54,15 @@ test("injects fixed-order distractors with prompt text matching audio", async ()
   assert.match(page, /"Put a piece of lemon on the edge of the cup"/);
   assert.match(page, /"Pour out 25% portion of the first cup into the trash can"/);
   assert.match(page, /"Stir the cup"/);
-  assert.match(page, /const distractor = distractors\[blockIndex\]/);
+  assert.match(page, /tableCorrectSteps = \[/);
+  assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "task_assembly"\)/);
+  assert.match(page, /tableDistractorSteps = \[/);
+  assert.match(page, /"Insert a number seven piece at slot two of a number three piece"/);
+  assert.match(page, /"Take a number seven piece"/);
+  assert.match(page, /"Connect a number five piece with a number nine piece"/);
+  assert.match(page, /"Connect a number six piece with a number eight piece"/);
+  assert.match(page, /"Take a cutting knife"/);
+  assert.match(page, /const distractor = config\.distractors\[blockIndex\]/);
   assert.doesNotMatch(page, /Play distractor instruction/);
 });
 

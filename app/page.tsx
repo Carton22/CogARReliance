@@ -90,6 +90,24 @@ const bobaCorrectSteps = [
   "Add a straw",
 ];
 
+const tableCorrectSteps = [
+  "Insert a number four piece at slot one of a number three piece",
+  "Connect the other side of the number four piece with a new number three piece",
+  "Take another number four piece",
+  "Insert the number four piece at slot two between the two number three pieces",
+  "Connect the number one piece on top of the two number three pieces",
+  "Connect a number two piece at the remaining slot of the number one piece",
+  "Connect a number five piece with a number six piece",
+  "Connect another number five piece with the number six piece",
+  "Connect a second number six piece on the other end of the number five pieces",
+  "Connect a number eight piece with a number nine piece",
+  "Connect another number eight piece with the number nine piece",
+  "Connect a second number nine piece on the other end of the number eight pieces",
+  "Connect a number five piece with a number six piece",
+  "Connect another number five piece with the number six piece",
+  "Connect a second number six piece on the other end of the number five pieces",
+];
+
 const shelfDistractorSteps = [
   "Take a scissors",
   "Insert a purple piece at slot 3",
@@ -105,6 +123,47 @@ const bobaDistractorSteps = [
   "Pour out 25% portion of the first cup into the trash can",
   "Stir the cup",
 ];
+
+const tableDistractorSteps = [
+  "Insert a number seven piece at slot two of a number three piece",
+  "Take a number seven piece",
+  "Connect a number five piece with a number nine piece",
+  "Connect a number six piece with a number eight piece",
+  "Take a cutting knife",
+];
+
+const randomizedTaskConfigs = {
+  shelf: {
+    correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
+    distractorSteps: shelfDistractorSteps,
+    folder: "shelf-assembly-distractors",
+    prefix: "shelf",
+    distractors: ["A", "B", "C", "D", "E"],
+  },
+  boba: {
+    correct: correctTasks(bobaCorrectSteps, "boba", "boba"),
+    distractorSteps: bobaDistractorSteps,
+    folder: "boba-distractors",
+    prefix: "boba",
+    distractors: ["A", "B", "C", "D", "E"],
+  },
+  table: {
+    correct: correctTasks(tableCorrectSteps, "table-assembly", "task_assembly"),
+    distractorSteps: tableDistractorSteps,
+    folder: "table-assembly-distractors",
+    prefix: "task_assembly",
+    distractors: ["A", "B", "C", "D", "E"],
+  },
+} satisfies Record<
+  "shelf" | "boba" | "table",
+  {
+    correct: Task[];
+    distractorSteps: string[];
+    folder: string;
+    prefix: string;
+    distractors: string[];
+  }
+>;
 
 function correctTasks(
   steps: string[],
@@ -138,31 +197,26 @@ function seededRandom(seedText: string) {
   };
 }
 
-function randomizedStudyTasks(planId: "shelf" | "boba", participantId: number) {
-  const correct = planId === "shelf"
-    ? correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf")
-    : correctTasks(bobaCorrectSteps, "boba", "boba");
-  const distractorSteps = planId === "shelf"
-    ? shelfDistractorSteps
-    : bobaDistractorSteps;
+function randomizedStudyTasks(
+  planId: "shelf" | "boba" | "table",
+  participantId: number,
+) {
+  const config = randomizedTaskConfigs[planId];
   const random = seededRandom(`${planId}-${participantId}`);
-  const distractors = ["A", "B", "C", "D", "E"];
-  const folder = planId === "shelf" ? "shelf-assembly-distractors" : "boba-distractors";
-  const prefix = planId === "shelf" ? "shelf" : "boba";
 
   return Array.from({ length: 5 }, (_, blockIndex) => {
-    const block = correct.slice(blockIndex * 3, blockIndex * 3 + 3);
+    const block = config.correct.slice(blockIndex * 3, blockIndex * 3 + 3);
     const position = blockIndex === 0
       ? 1 + Math.floor(random() * 3)
       : Math.floor(random() * 4);
-    const distractor = distractors[blockIndex];
-    const text = distractorSteps[blockIndex];
+    const distractor = config.distractors[blockIndex];
+    const text = config.distractorSteps[blockIndex];
     const wrong: Task = {
       name: text,
       correctOptions: [],
       incorrectOptions: [{
         text,
-        audioSrc: `/audio/${folder}/${prefix}_${distractor}.mp3`,
+        audioSrc: `/audio/${config.folder}/${config.prefix}_${distractor}.mp3`,
       }],
       mainKind: "incorrect",
     };
@@ -405,162 +459,8 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK D",
     title: "Table assembly plan",
     description:
-      "Control the twelve-step table assembly study from the first side structure through the three box assemblies.",
-    tasks: [
-      {
-        name: "Take side 2",
-        correctOptions: [
-          {
-            text: "Take a No.3 piece",
-            audioSrc: "/audio/box-assembly/step01_main_take_no3.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Insert mid-layer 2 into side 2",
-        correctOptions: [
-          {
-            text: "Connect a No.4 piece with the No.3 piece",
-            audioSrc:
-              "/audio/box-assembly/step02_main_connect_no4_no3.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Insert side 3 between side 2 and mid-layer 2",
-        correctOptions: [
-          {
-            text: "Connect another No.3 piece with No.4 piece",
-            audioSrc:
-              "/audio/box-assembly/step03_alt_connect_another_no3_no4.mp3",
-          },
-        ],
-        incorrectOptions: [
-          {
-            text: "Connect the No.1 piece with the No.4 piece",
-            audioSrc:
-              "/audio/box-assembly/step03_main_connect_no1_no4.mp3",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Insert mid-layer 1 between sides 2 and 3",
-        correctOptions: [
-          {
-            text: "(Optional) Replace the No.1 piece with the No.3 piece",
-            audioSrc:
-              "/audio/box-assembly/step04_alt_optional_replace_no1_no3.mp3",
-          },
-          {
-            text: "Insert a No.6 piece between the 2 No.3 pieces",
-            audioSrc:
-              "/audio/box-assembly/step04_alt_insert_no6_between_no3.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Connect the top with sides 2 and 3",
-        correctOptions: [
-          {
-            text: "Insert the No.1 piece on top of the 2 No.3 pieces",
-            audioSrc:
-              "/audio/box-assembly/step05_main_no1_on_two_no3.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Connect side 1 with the top",
-        correctOptions: [
-          {
-            text: "Connect the No.1 piece and No.2 piece",
-            audioSrc:
-              "/audio/box-assembly/step06_main_connect_no1_no2.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Connect the (A) left, back, right, and front pieces",
-        correctOptions: [],
-        incorrectOptions: [
-          {
-            text: "Take two No.5 pieces and two No.9 pieces and connect together into a box",
-            audioSrc: "/audio/box-assembly/step07_main_box_a.mp3",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Connect the (A) bottom with the remaining parts and insert",
-        correctOptions: [
-          {
-            text: "Connect the No.7 piece with the box assembly",
-            audioSrc:
-              "/audio/box-assembly/step08_main_connect_no7_box.mp3",
-          },
-          {
-            text: "replace the No.9 with No.6 pieces and connect with No.5 pieces",
-            audioSrc:
-              "/audio/box-assembly/step08_alt_replace_no9_no6.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Connect the (C) left, back, right, and front pieces",
-        correctOptions: [
-          {
-            text: "Take two No.5 pieces and two No.6 pieces and connect together into a box",
-            audioSrc: "/audio/box-assembly/step09_main_box_c.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Connect the (C) bottom with the remaining parts and insert",
-        correctOptions: [
-          {
-            text: "Connect the No.7 piece with the box assembly",
-            audioSrc:
-              "/audio/box-assembly/step10_main_connect_no7_box.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Connect the (B) left, back, right, and front pieces",
-        correctOptions: [
-          {
-            text: "replace the No.6 with No.9 pieces",
-            audioSrc:
-              "/audio/box-assembly/step11_alt_replace_no6_no9.mp3",
-          },
-        ],
-        incorrectOptions: [
-          {
-            text: "Take two No.8 pieces and two No.6 pieces and connect together into a box",
-            audioSrc: "/audio/box-assembly/step11_main_box_b.mp3",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Connect the (B) bottom with the remaining parts and insert",
-        correctOptions: [
-          {
-            text: "Connect the No.7 piece with the box assembly",
-            audioSrc:
-              "/audio/box-assembly/step12_main_connect_no7_box.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-    ],
+      "Guide the 15-step table assembly and record the participant's decision for every AI instruction.",
+    tasks: correctTasks(tableCorrectSteps, "table-assembly", "task_assembly"),
   },
 ];
 
@@ -616,7 +516,7 @@ export default function Home() {
   const touchStartX = useRef<number | null>(null);
 
   const selectedPlan = plans[activePlanIndex];
-  const activePlan = selectedPlan.id === "shelf" || selectedPlan.id === "boba"
+  const activePlan = selectedPlan.id === "shelf" || selectedPlan.id === "boba" || selectedPlan.id === "table"
     ? { ...selectedPlan, tasks: randomizedStudyTasks(selectedPlan.id, participantId) }
     : selectedPlan;
   const activeState = taskState[activePlan.id] ?? emptyPlanState(activePlan);
@@ -683,7 +583,7 @@ export default function Home() {
   useEffect(() => {
     if (!hydrated) return;
     const selected = plans[activePlanIndex];
-    const plan = selected.id === "shelf" || selected.id === "boba"
+    const plan = selected.id === "shelf" || selected.id === "boba" || selected.id === "table"
       ? { ...selected, tasks: randomizedStudyTasks(selected.id, participantId) }
       : selected;
     void publishProgress({
