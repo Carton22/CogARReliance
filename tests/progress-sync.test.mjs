@@ -91,6 +91,15 @@ test("fetches the latest progress for one participant", async () => {
   assert.deepEqual(result, valid);
 });
 
+test("rejects progress returned for a different participant", async () => {
+  await assert.rejects(
+    fetchProgress(7, async () =>
+      Response.json({ ok: true, progress: { ...valid, participantId: 8 } }),
+    ),
+    /progress response was invalid/i,
+  );
+});
+
 test("keeps the newest progress when responses resolve out of timestamp order", () => {
   const newer = {
     ...valid,

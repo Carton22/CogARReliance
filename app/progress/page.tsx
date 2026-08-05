@@ -19,6 +19,11 @@ const EMPTY_PROGRESS = {
   updatedAt: "",
 };
 
+const emptyProgress = (participantId: number) => ({
+  ...EMPTY_PROGRESS,
+  participantId,
+});
+
 export default function ProgressPage() {
   const [participantId, setParticipantId] = useState(1);
   const [progress, setProgress] = useState(EMPTY_PROGRESS);
@@ -34,11 +39,17 @@ export default function ProgressPage() {
     let cancelled = false;
     // Reset synchronously before the next participant's first fetch resolves.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProgress({ ...EMPTY_PROGRESS, participantId });
+    setProgress(emptyProgress(participantId));
     const refresh = async () => {
       try {
         const next = await fetchProgress(participantId);
-        if (!cancelled) setProgress((current) => selectNewerProgress(current, next));
+        if (!cancelled) {
+          setProgress((current) =>
+            next === null
+              ? emptyProgress(participantId)
+              : selectNewerProgress(current, next),
+          );
+        }
       } catch {
         // Intentionally retain the last valid value without adding visible UI.
       }
@@ -60,6 +71,7 @@ export default function ProgressPage() {
     );
     if (!confirmed) return;
 
+    setProgress(emptyProgress(nextParticipantId));
     window.history.replaceState(
       window.history.state,
       "",
@@ -89,9 +101,10 @@ export default function ProgressPage() {
         className={styles.track}
         role="progressbar"
         aria-label={`${progress.currentStep}/${progress.totalSteps}`}
-        aria-valuemin={0}
-        aria-valuemax={progress.totalSteps}
-        aria-valuenow={progress.currentStep}
+        aria-valuetext={`${progress.currentStep}/${progress.totalSteps}`}
+        aria-valuemin={progress.totalSteps > 0 ? 0 : undefined}
+        aria-valuemax={progress.totalSteps > 0 ? progress.totalSteps : undefined}
+        aria-valuenow={progress.totalSteps > 0 ? progress.currentStep : undefined}
       >
         <span className={styles.fill} style={{ width: `${percentage}%` }} />
       </div>
