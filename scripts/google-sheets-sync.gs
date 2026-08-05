@@ -29,8 +29,42 @@ function ensureHeaders(sheet) {
   }
 }
 
+function progressKey(participantId) {
+  return `progress:${participantSheetName(participantId)}`;
+}
+
+function normalizeProgress(progress) {
+  const participantId = Number(progress && progress.participantId);
+  const currentStep = Number(progress && progress.currentStep);
+  const totalSteps = Number(progress && progress.totalSteps);
+  const planIds = ["sandwich", "shelf", "boba", "table"];
+  if (
+    !Number.isInteger(participantId) || participantId < 1 || participantId > 36 ||
+    planIds.indexOf(progress.planId) === -1 ||
+    !Number.isInteger(currentStep) || !Number.isInteger(totalSteps) ||
+    totalSteps < 0 || currentStep < 0 || currentStep > totalSteps ||
+    typeof progress.updatedAt !== "string"
+  ) return null;
+  return { participantId, planId: progress.planId, currentStep, totalSteps, updatedAt: progress.updatedAt };
+}
+
+function jsonResponse(body) {
+  return ContentService
+    .createTextOutput(JSON.stringify(body))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(event) {
   const payload = JSON.parse(event.postData.contents || "{}");
+  if (payload.type === "progress") {
+    const progress = normalizeProgress(payload.progress);
+    if (!progress) return jsonResponse({ ok: false, error: "invalid_progress" });
+    PropertiesService
+      .getDocumentProperties()
+      .setProperty(progressKey(progress.participantId), JSON.stringify(progress));
+    return jsonResponse({ ok: true });
+  }
+
   const row = payload.row || {};
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = sheetForParticipant(spreadsheet, row.participant_id);
@@ -47,13 +81,17 @@ function doPost(event) {
     row.event_timestamp_iso || "",
   ]);
 
-  return ContentService
-    .createTextOutput(JSON.stringify({ ok: true }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse({ ok: true });
 }
 
-function doGet() {
-  return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, service: "cogar-study-console-sync" }))
-    .setMimeType(ContentService.MimeType.JSON);
+function doGet(event) {
+  const participant = event && event.parameter && event.parameter.participant;
+  const participantId = Number(participant);
+  if (Number.isInteger(participantId) && participantId >= 1 && participantId <= 36) {
+    const stored = PropertiesService
+      .getDocumentProperties()
+      .getProperty(progressKey(participantId));
+    return jsonResponse({ ok: true, progress: stored ? JSON.parse(stored) : null });
+  }
+  return jsonResponse({ ok: true, service: "cogar-study-console-sync" });
 }
