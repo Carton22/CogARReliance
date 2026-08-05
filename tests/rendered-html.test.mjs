@@ -55,7 +55,7 @@ test("injects fixed-order distractors with prompt text matching audio", async ()
   assert.match(page, /"Pour out 25% portion of the first cup into the trash can"/);
   assert.match(page, /"Stir the cup"/);
   assert.match(page, /tableCorrectSteps = \[/);
-  assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "task_assembly"\)/);
+  assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
   assert.match(page, /tableDistractorSteps = \[/);
   assert.match(page, /"Insert a number seven piece at slot two of a number three piece"/);
   assert.match(page, /"Take a number seven piece"/);

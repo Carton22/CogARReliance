@@ -148,10 +148,10 @@ const randomizedTaskConfigs = {
     distractors: ["A", "B", "C", "D", "E"],
   },
   table: {
-    correct: correctTasks(tableCorrectSteps, "table-assembly", "task_assembly"),
+    correct: correctTasks(tableCorrectSteps, "table-assembly", "table_assembly"),
     distractorSteps: tableDistractorSteps,
     folder: "table-assembly-distractors",
-    prefix: "task_assembly",
+    prefix: "table_assembly",
     distractors: ["A", "B", "C", "D", "E"],
   },
 } satisfies Record<
@@ -460,7 +460,7 @@ const plans: Plan[] = [
     title: "Table assembly plan",
     description:
       "Guide the 15-step table assembly and record the participant's decision for every AI instruction.",
-    tasks: correctTasks(tableCorrectSteps, "table-assembly", "task_assembly"),
+    tasks: correctTasks(tableCorrectSteps, "table-assembly", "table_assembly"),
   },
 ];
 
