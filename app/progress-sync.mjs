@@ -26,6 +26,16 @@ export function normalizeParticipantId(value) {
     : 1;
 }
 
+export function formatParticipantLabel(value) {
+  return `Participant ${String(normalizeParticipantId(value)).padStart(2, "0")}`;
+}
+
+export function participantProgressUrl(currentUrl, participantId) {
+  const url = new URL(currentUrl);
+  url.searchParams.set("participant", String(normalizeParticipantId(participantId)));
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 export function normalizeProgress(value) {
   if (!value || typeof value !== "object") return null;
   const candidate = value;
@@ -71,8 +81,9 @@ export async function publishProgress(progress, fetchImpl = globalThis.fetch) {
 }
 
 export async function fetchProgress(participantId, fetchImpl = globalThis.fetch) {
+  const requestedParticipantId = normalizeParticipantId(participantId);
   const url = new URL(DEFAULT_SHEET_SYNC_URL);
-  url.searchParams.set("participant", String(normalizeParticipantId(participantId)));
+  url.searchParams.set("participant", String(requestedParticipantId));
   const response = await fetchImpl(url, {
     cache: "no-store",
     credentials: "omit",
@@ -82,6 +93,8 @@ export async function fetchProgress(participantId, fetchImpl = globalThis.fetch)
   if (body?.ok !== true) throw new Error("Progress response was invalid");
   if (body.progress === null) return null;
   const normalized = normalizeProgress(body.progress);
-  if (!normalized) throw new Error("Progress response was invalid");
+  if (!normalized || normalized.participantId !== requestedParticipantId) {
+    throw new Error("Progress response was invalid");
+  }
   return normalized;
 }
