@@ -26,6 +26,16 @@ export function normalizeParticipantId(value) {
     : 1;
 }
 
+export function formatParticipantLabel(value) {
+  return `Participant ${String(normalizeParticipantId(value)).padStart(2, "0")}`;
+}
+
+export function participantProgressUrl(currentUrl, participantId) {
+  const url = new URL(currentUrl);
+  url.searchParams.set("participant", String(normalizeParticipantId(participantId)));
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 export function normalizeProgress(value) {
   if (!value || typeof value !== "object") return null;
   const candidate = value;

@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   fetchProgress,
+  formatParticipantLabel,
   normalizeParticipantId,
   normalizeProgress,
+  participantProgressUrl,
   progressPercentage,
   publishProgress,
   selectNewerProgress,
@@ -22,6 +24,27 @@ test("normalizes participant IDs into the supported range", () => {
   assert.equal(normalizeParticipantId("0"), 1);
   assert.equal(normalizeParticipantId("37"), 1);
   assert.equal(normalizeParticipantId("words"), 1);
+});
+
+test("formats normalized participant IDs as two-digit labels", () => {
+  assert.equal(formatParticipantLabel(1), "Participant 01");
+  assert.equal(formatParticipantLabel("7"), "Participant 07");
+  assert.equal(formatParticipantLabel(36), "Participant 36");
+  assert.equal(formatParticipantLabel("invalid"), "Participant 01");
+});
+
+test("replaces only the participant query value in a progress URL", () => {
+  assert.equal(
+    participantProgressUrl(
+      "https://carton22.github.io/CogARReliance/progress?participant=1&display=large#bar",
+      12,
+    ),
+    "/CogARReliance/progress?participant=12&display=large#bar",
+  );
+  assert.equal(
+    participantProgressUrl("https://example.test/progress?display=large", 37),
+    "/progress?display=large&participant=1",
+  );
 });
 
 test("accepts valid progress and rejects malformed progress", () => {
