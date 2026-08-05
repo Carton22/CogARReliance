@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { DEFAULT_SHEET_SYNC_URL, publishProgress } from "./progress-sync.mjs";
 
 type Decision = "accept" | "reject";
 type PlanId = "sandwich" | "shelf" | "boba" | "table";
@@ -52,8 +53,6 @@ type Plan = {
 };
 
 const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-const DEFAULT_SHEET_SYNC_URL =
-  "https://script.google.com/a/macros/umn.edu/s/AKfycbz_nqJuXk07t0STgh1aKmajbJ3Af7RXAnc4iPe8ddQvqh_eaOUUbOIdoTO-7OyygQS6gw/exec";
 
 const shelfCorrectSteps = [
   "Classify the pieces based on color",
@@ -621,6 +620,14 @@ export default function Home() {
     ? { ...selectedPlan, tasks: randomizedStudyTasks(selectedPlan.id, participantId) }
     : selectedPlan;
   const activeState = taskState[activePlan.id] ?? emptyPlanState(activePlan);
+  const publishActiveProgress = (currentStep: number) =>
+    publishProgress({
+      participantId,
+      planId: activePlan.id,
+      currentStep,
+      totalSteps: activePlan.tasks.length,
+      updatedAt: new Date().toISOString(),
+    }).catch(() => undefined);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -672,6 +679,21 @@ export default function Home() {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const selected = plans[activePlanIndex];
+    const plan = selected.id === "shelf" || selected.id === "boba"
+      ? { ...selected, tasks: randomizedStudyTasks(selected.id, participantId) }
+      : selected;
+    void publishProgress({
+      participantId,
+      planId: plan.id,
+      currentStep: 0,
+      totalSteps: plan.tasks.length,
+      updatedAt: new Date().toISOString(),
+    }).catch(() => undefined);
+  }, [activePlanIndex, hydrated, participantId]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -839,6 +861,7 @@ export default function Home() {
     void audio.play().catch(() => setPlayingCue(null));
 
     if (shouldRecord) {
+      void publishActiveProgress(taskNumber);
       updateTask(planId, taskNumber, (current) => ({
         ...current,
         audioPlays: current.audioPlays + 1,
@@ -904,6 +927,7 @@ export default function Home() {
     setTaskState(emptyTaskState());
     setLogs([]);
     setPlayingCue(null);
+    void publishActiveProgress(0);
     window.localStorage.removeItem(STORAGE_KEY);
   };
 
@@ -993,6 +1017,10 @@ export default function Home() {
               ))}
             </select>
           </label>
+          <a
+            className="participant-display-link"
+            href={`${PUBLIC_BASE_PATH}/progress?participant=${participantId}`}
+          >Participant display</a>
           <button
             type="button"
             className={`task-start-button ${

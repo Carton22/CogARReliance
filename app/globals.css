@@ -169,6 +169,30 @@ h1 span {
   font-weight: 800;
 }
 
+.participant-display-link {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 16px;
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.participant-display-link:hover {
+  border-color: var(--blue);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.14);
+}
+
+.participant-display-link:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.4);
+  outline-offset: 3px;
+}
+
 .live-pill,
 .task-start-button,
 .ghost-button,
