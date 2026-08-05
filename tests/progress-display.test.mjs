@@ -33,3 +33,23 @@ test("initializes and resets the active plan at step zero", async () => {
   const resetEnd = page.indexOf("const handleParticipantIdChange", resetStart);
   assert.match(page.slice(resetStart, resetEnd), /publishActiveProgress\(0\)/);
 });
+
+test("renders only the large progress bar and current over total value", async () => {
+  const progressPage = await readFile(new URL("../app/progress/page.tsx", import.meta.url), "utf8");
+  const renderedMarkup = progressPage.slice(progressPage.indexOf("<main"), progressPage.lastIndexOf("</main>") + 7);
+  assert.match(progressPage, /role="progressbar"/);
+  assert.match(progressPage, /aria-valuemin=\{0\}/);
+  assert.match(progressPage, /aria-valuemax=\{progress\.totalSteps\}/);
+  assert.match(progressPage, /\{progress\.currentStep\}\/\{progress\.totalSteps\}/);
+  assert.doesNotMatch(renderedMarkup, /<button|<a\b|<select|Participant|plan title|connection|reconnecting/i);
+});
+
+test("polls the requested participant once per second and retains state on failure", async () => {
+  const progressPage = await readFile(new URL("../app/progress/page.tsx", import.meta.url), "utf8");
+  assert.match(progressPage, /URLSearchParams\(window\.location\.search\)/);
+  assert.match(progressPage, /normalizeParticipantId/);
+  assert.match(progressPage, /fetchProgress\(participantId\)/);
+  assert.match(progressPage, /window\.setInterval\([^,]+,\s*1000\)/s);
+  assert.match(progressPage, /catch\s*\{[\s\S]*retain the last valid value/);
+  assert.match(progressPage, /window\.clearInterval/);
+});
