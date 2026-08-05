@@ -53,3 +53,12 @@ test("polls the requested participant once per second and retains state on failu
   assert.match(progressPage, /catch\s*\{[\s\S]*retain the last valid value/);
   assert.match(progressPage, /window\.clearInterval/);
 });
+
+test("applies polled progress with a functional monotonic state update", async () => {
+  const progressPage = await readFile(new URL("../app/progress/page.tsx", import.meta.url), "utf8");
+  assert.match(progressPage, /selectNewerProgress/);
+  assert.match(
+    progressPage,
+    /setProgress\(\s*\(?current\)?\s*=>\s*selectNewerProgress\(current,\s*next\)\s*\)/s,
+  );
+});

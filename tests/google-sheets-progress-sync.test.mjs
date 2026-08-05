@@ -3,10 +3,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
 
-async function loadScript() {
+async function loadScript({ requireProgressLock = false, failFirstProgressWrite = false } = {}) {
   const source = await readFile(new URL("../scripts/google-sheets-sync.gs", import.meta.url), "utf8");
   const properties = new Map();
   const appendedRows = [];
+  let lockHeld = false;
+  let shouldFailProgressWrite = failFirstProgressWrite;
   const context = {
     ContentService: {
       MimeType: { JSON: "json" },
@@ -18,7 +20,29 @@ async function loadScript() {
       getDocumentProperties() {
         return {
           getProperty: (key) => properties.get(key) ?? null,
-          setProperty: (key, value) => properties.set(key, value),
+          setProperty(key, value) {
+            if (requireProgressLock && !lockHeld) {
+              throw new Error("progress property write was not locked");
+            }
+            if (shouldFailProgressWrite) {
+              shouldFailProgressWrite = false;
+              throw new Error("simulated property write failure");
+            }
+            properties.set(key, value);
+          },
+        };
+      },
+    },
+    LockService: {
+      getScriptLock() {
+        return {
+          waitLock() {
+            if (lockHeld) throw new Error("progress lock was not released");
+            lockHeld = true;
+          },
+          releaseLock() {
+            lockHeld = false;
+          },
         };
       },
     },
@@ -94,6 +118,63 @@ test("rejects invalid progress without replacing the last valid value", async ()
       }),
     },
   });
+  assert.deepEqual(JSON.parse(invalidResponse.text), {
+    ok: false,
+    error: "invalid_progress",
+  });
+  const response = context.doGet({ parameter: { participant: "7" } });
+  assert.deepEqual(JSON.parse(response.text), { ok: true, progress });
+});
+
+test("ignores a delayed older progress write after a newer state is stored", async () => {
+  const { context } = await loadScript({ requireProgressLock: true });
+  const newer = {
+    ...progress,
+    currentStep: 0,
+    updatedAt: "2026-08-04T12:00:02.000Z",
+  };
+  const delayedOlder = {
+    ...progress,
+    currentStep: 8,
+    updatedAt: "2026-08-04T12:00:01.000Z",
+  };
+
+  context.doPost({ postData: { contents: JSON.stringify({ type: "progress", progress: newer }) } });
+  const staleResponse = context.doPost({
+    postData: { contents: JSON.stringify({ type: "progress", progress: delayedOlder }) },
+  });
+
+  assert.deepEqual(JSON.parse(staleResponse.text), { ok: true, stale: true });
+  const response = context.doGet({ parameter: { participant: "7" } });
+  assert.deepEqual(JSON.parse(response.text), { ok: true, progress: newer });
+});
+
+test("releases the progress lock when property storage fails", async () => {
+  const { context } = await loadScript({
+    requireProgressLock: true,
+    failFirstProgressWrite: true,
+  });
+  const post = () => context.doPost({
+    postData: { contents: JSON.stringify({ type: "progress", progress }) },
+  });
+
+  assert.throws(post, /simulated property write failure/);
+  assert.doesNotThrow(post);
+});
+
+test("rejects a non-ISO progress timestamp without replacing stored state", async () => {
+  const { context } = await loadScript();
+  context.doPost({ postData: { contents: JSON.stringify({ type: "progress", progress }) } });
+
+  const invalidResponse = context.doPost({
+    postData: {
+      contents: JSON.stringify({
+        type: "progress",
+        progress: { ...progress, currentStep: 6, updatedAt: "later" },
+      }),
+    },
+  });
+
   assert.deepEqual(JSON.parse(invalidResponse.text), {
     ok: false,
     error: "invalid_progress",

@@ -33,6 +33,12 @@ function progressKey(participantId) {
   return `progress:${participantSheetName(participantId)}`;
 }
 
+function isIsoTimestamp(value) {
+  if (typeof value !== "string") return false;
+  const timestamp = new Date(value);
+  return !isNaN(timestamp.getTime()) && timestamp.toISOString() === value;
+}
+
 function normalizeProgress(progress) {
   const participantId = Number(progress && progress.participantId);
   const currentStep = Number(progress && progress.currentStep);
@@ -43,7 +49,7 @@ function normalizeProgress(progress) {
     planIds.indexOf(progress.planId) === -1 ||
     !Number.isInteger(currentStep) || !Number.isInteger(totalSteps) ||
     totalSteps < 0 || currentStep < 0 || currentStep > totalSteps ||
-    typeof progress.updatedAt !== "string"
+    !isIsoTimestamp(progress.updatedAt)
   ) return null;
   return { participantId, planId: progress.planId, currentStep, totalSteps, updatedAt: progress.updatedAt };
 }
@@ -59,10 +65,21 @@ function doPost(event) {
   if (payload.type === "progress") {
     const progress = normalizeProgress(payload.progress);
     if (!progress) return jsonResponse({ ok: false, error: "invalid_progress" });
-    PropertiesService
-      .getDocumentProperties()
-      .setProperty(progressKey(progress.participantId), JSON.stringify(progress));
-    return jsonResponse({ ok: true });
+    const lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+      const properties = PropertiesService.getDocumentProperties();
+      const key = progressKey(progress.participantId);
+      const stored = properties.getProperty(key);
+      const latest = stored ? normalizeProgress(JSON.parse(stored)) : null;
+      if (latest && progress.updatedAt < latest.updatedAt) {
+        return jsonResponse({ ok: true, stale: true });
+      }
+      properties.setProperty(key, JSON.stringify(progress));
+      return jsonResponse({ ok: true });
+    } finally {
+      lock.releaseLock();
+    }
   }
 
   const row = payload.row || {};

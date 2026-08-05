@@ -5,6 +5,7 @@ import {
   fetchProgress,
   normalizeParticipantId,
   progressPercentage,
+  selectNewerProgress,
 } from "../progress-sync.mjs";
 import styles from "./progress.module.css";
 
@@ -35,7 +36,7 @@ export default function ProgressPage() {
     const refresh = async () => {
       try {
         const next = await fetchProgress(participantId);
-        if (!cancelled) setProgress(next ?? { ...EMPTY_PROGRESS, participantId });
+        if (!cancelled) setProgress((current) => selectNewerProgress(current, next));
       } catch {
         // Intentionally retain the last valid value without adding visible UI.
       }

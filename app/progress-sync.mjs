@@ -3,6 +3,12 @@ export const DEFAULT_SHEET_SYNC_URL =
 
 const PLAN_IDS = new Set(["sandwich", "shelf", "boba", "table"]);
 
+function isIsoTimestamp(value) {
+  if (typeof value !== "string") return false;
+  const timestamp = new Date(value);
+  return !Number.isNaN(timestamp.getTime()) && timestamp.toISOString() === value;
+}
+
 /**
  * @typedef {{
  *   participantId: number,
@@ -33,9 +39,17 @@ export function normalizeProgress(value) {
     candidate.totalSteps < 0 ||
     candidate.currentStep < 0 ||
     candidate.currentStep > candidate.totalSteps ||
-    typeof candidate.updatedAt !== "string"
+    !isIsoTimestamp(candidate.updatedAt)
   ) return null;
   return candidate;
+}
+
+export function selectNewerProgress(current, incoming) {
+  const next = normalizeProgress(incoming);
+  if (!next) return current;
+  const previous = normalizeProgress(current);
+  if (!previous || previous.participantId !== next.participantId) return next;
+  return next.updatedAt >= previous.updatedAt ? next : previous;
 }
 
 export function progressPercentage(progress) {
@@ -61,7 +75,7 @@ export async function fetchProgress(participantId, fetchImpl = globalThis.fetch)
   url.searchParams.set("participant", String(normalizeParticipantId(participantId)));
   const response = await fetchImpl(url, {
     cache: "no-store",
-    credentials: "include",
+    credentials: "omit",
   });
   if (!response.ok) throw new Error("Progress request failed");
   const body = await response.json();
