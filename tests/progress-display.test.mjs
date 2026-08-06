@@ -36,7 +36,12 @@ test("initializes and resets the active plan at step zero", async () => {
 
 test("renders a participant selector with the large progress display", async () => {
   const progressPage = await readFile(new URL("../app/progress/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/progress/progress.module.css", import.meta.url), "utf8");
   const renderedMarkup = progressPage.slice(progressPage.indexOf("<main"), progressPage.lastIndexOf("</main>") + 7);
+  const valueStart = css.indexOf(".value");
+  const valueEnd = css.indexOf("}", valueStart);
+  const valueRule = css.slice(valueStart, valueEnd);
+
   assert.match(progressPage, /role="progressbar"/);
   assert.match(progressPage, /aria-valuetext=\{`\$\{progress\.currentStep\}\/\$\{progress\.totalSteps\}`\}/);
   assert.match(progressPage, /aria-valuemin=\{progress\.totalSteps > 0 \? 0 : undefined\}/);
@@ -48,6 +53,8 @@ test("renders a participant selector with the large progress display", async () 
   assert.match(renderedMarkup, /Array\.from\(\{ length: 36 \}/);
   assert.match(renderedMarkup, /formatParticipantLabel\(id\)/);
   assert.doesNotMatch(renderedMarkup, /<button|<a\b|plan title|connection|reconnecting/i);
+  assert.match(valueRule, /font-size:\s*clamp\(120px,\s*min\(32vw,\s*34vh\),\s*420px\)/);
+  assert.match(valueRule, /line-height:\s*0\.8/);
 });
 
 test("confirms a different participant before replacing the URL and polling target", async () => {

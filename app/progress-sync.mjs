@@ -1,7 +1,7 @@
 export const DEFAULT_SHEET_SYNC_URL =
   "https://script.google.com/a/macros/umn.edu/s/AKfycbz_nqJuXk07t0STgh1aKmajbJ3Af7RXAnc4iPe8ddQvqh_eaOUUbOIdoTO-7OyygQS6gw/exec";
 
-const PLAN_IDS = new Set(["sandwich", "shelf", "boba", "table"]);
+const PLAN_IDS = new Set(["training", "sandwich", "shelf", "boba", "table"]);
 
 function isIsoTimestamp(value) {
   if (typeof value !== "string") return false;
@@ -12,7 +12,7 @@ function isIsoTimestamp(value) {
 /**
  * @typedef {{
  *   participantId: number,
- *   planId: "sandwich" | "shelf" | "boba" | "table",
+ *   planId: "training" | "sandwich" | "shelf" | "boba" | "table",
  *   currentStep: number,
  *   totalSteps: number,
  *   updatedAt: string,

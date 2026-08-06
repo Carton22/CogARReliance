@@ -15,15 +15,32 @@ test("uses AI audio, Accept, and Reject as the matrix decision columns", async (
   );
 });
 
-test("uses 15-step shelf and boba scripts with participant IDs", async () => {
+test("uses training plus 7-correct-step study scripts with participant IDs", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
   assert.match(page, /participantId/);
   assert.match(page, /Array\.from\(\{ length: 36 \}/);
+  assert.match(page, /id: "training"/);
+  assert.match(page, /trainingCorrectSteps = \[/);
+  assert.match(page, /sandwichCorrectSteps = \[/);
   assert.match(page, /shelfCorrectSteps = \[/);
   assert.match(page, /bobaCorrectSteps = \[/);
+  assert.match(page, /tableCorrectSteps = \[/);
+  assert.match(page, /correctTasks\(trainingCorrectSteps, "training", "training"\)/);
+  assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
   assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf"\)/);
   assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba"\)/);
+  assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
+});
+
+test("allows training in progress sync validators", async () => {
+  const [progressSync, script] = await Promise.all([
+    readFile(new URL("../app/progress-sync.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/google-sheets-sync.gs", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(progressSync, /new Set\(\["training", "sandwich", "shelf", "boba", "table"\]\)/);
+  assert.match(script, /\["training", "sandwich", "shelf", "boba", "table"\]/);
 });
 
 test("uses a bounded participant dropdown and a cross for recorded rejection", async () => {
@@ -39,30 +56,37 @@ test("uses a bounded participant dropdown and a cross for recorded rejection", a
   assert.match(page, /decision === "reject" \? "×" : "✓"/);
 });
 
-test("injects fixed-order distractors with prompt text matching audio", async () => {
+test("injects three participant-stable distractors only between the allowed 2-step blocks", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
+  assert.match(page, /const DISTRACTOR_INSERT_WINDOWS = \[/);
+  assert.match(page, /label: "A", allowedAfterCorrectSteps: \[1, 2, 3\]/);
+  assert.match(page, /label: "B", allowedAfterCorrectSteps: \[3, 4, 5\]/);
+  assert.match(page, /label: "C", allowedAfterCorrectSteps: \[5, 6, 7\]/);
+  assert.match(page, /insertAfterCorrectStep/);
+  assert.match(page, /buildDistractorBuckets/);
+  assert.doesNotMatch(page, /blockIndex \* 3/);
+  assert.match(page, /distractors: \["A", "B", "C"\]/);
+  assert.doesNotMatch(page, /distractors: \["A", "B", "C", "D", "E"\]/);
+  assert.doesNotMatch(page, /Array\.from\(\{ length: 5 \}, \(_, blockIndex\)/);
+  assert.match(page, /sandwichDistractorSteps = \[/);
+  assert.match(page, /"Add peppers"/);
+  assert.match(page, /"Add the green celery"/);
+  assert.match(page, /"Add water into a cup"/);
   assert.match(page, /shelfDistractorSteps = \[/);
-  assert.match(page, /"Take a scissors"/);
-  assert.match(page, /"Insert a purple piece at slot 3"/);
+  assert.match(page, /"Insert a purple at slot 3 of the yellow"/);
   assert.match(page, /"Insert a pink piece at slot 5"/);
   assert.match(page, /"Take a black piece"/);
-  assert.match(page, /"Take a marker pen"/);
   assert.match(page, /bobaDistractorSteps = \[/);
   assert.match(page, /"Add white sugar to the cup"/);
-  assert.match(page, /"Take one more plate"/);
-  assert.match(page, /"Put a piece of lemon on the edge of the cup"/);
-  assert.match(page, /"Pour out 25% portion of the first cup into the trash can"/);
-  assert.match(page, /"Stir the cup"/);
+  assert.match(page, /"Mix up the current cup"/);
+  assert.match(page, /"Add a piece of lemon on the edge"/);
   assert.match(page, /tableCorrectSteps = \[/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
   assert.match(page, /tableDistractorSteps = \[/);
-  assert.match(page, /"Insert a number seven piece at slot two of a number three piece"/);
-  assert.match(page, /"Take a number seven piece"/);
-  assert.match(page, /"Connect a number five piece with a number nine piece"/);
-  assert.match(page, /"Connect a number six piece with a number eight piece"/);
   assert.match(page, /"Take a cutting knife"/);
-  assert.match(page, /const distractor = config\.distractors\[blockIndex\]/);
+  assert.match(page, /"Connect a No\.5 with a No\.9"/);
+  assert.match(page, /"Connect a No\.6 with a No\.8"/);
   assert.doesNotMatch(page, /Play distractor instruction/);
 });
 

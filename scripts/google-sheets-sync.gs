@@ -43,7 +43,7 @@ function normalizeProgress(progress) {
   const participantId = Number(progress && progress.participantId);
   const currentStep = Number(progress && progress.currentStep);
   const totalSteps = Number(progress && progress.totalSteps);
-  const planIds = ["sandwich", "shelf", "boba", "table"];
+  const planIds = ["training", "sandwich", "shelf", "boba", "table"];
   if (
     !Number.isInteger(participantId) || participantId < 1 || participantId > 36 ||
     planIds.indexOf(progress.planId) === -1 ||

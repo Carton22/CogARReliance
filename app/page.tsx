@@ -10,7 +10,7 @@ import {
 import { DEFAULT_SHEET_SYNC_URL, publishProgress } from "./progress-sync.mjs";
 
 type Decision = "accept" | "reject";
-type PlanId = "sandwich" | "shelf" | "boba" | "table";
+type PlanId = "training" | "sandwich" | "shelf" | "boba" | "table";
 type CueKind = "correct" | "incorrect";
 
 type TaskState = {
@@ -54,108 +54,115 @@ type Plan = {
 
 const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+const DISTRACTOR_INSERT_WINDOWS = [
+  { label: "A", allowedAfterCorrectSteps: [1, 2, 3] },
+  { label: "B", allowedAfterCorrectSteps: [3, 4, 5] },
+  { label: "C", allowedAfterCorrectSteps: [5, 6, 7] },
+];
+
+const trainingCorrectSteps = [
+  "Put a long piece on the ground",
+  "Put a square piece at slot 1",
+  "Put a square piece at slot 2",
+  "Put a square piece at slot 3",
+  "Put a long piece on the top",
+];
+
+const sandwichCorrectSteps = [
+  "Take a plate",
+  "Put a bread into the plate",
+  "Add a piece of cheese",
+  "Add a piece of ham",
+  "Add ketchup",
+  "Add a bread on top",
+  "Put into microwave",
+];
+
 const shelfCorrectSteps = [
   "Classify the pieces based on color",
-  "Take a yellow piece",
-  "Take a green piece",
-  "Insert a green piece at slot 1 of the yellow piece",
-  "Take a pink piece",
-  "Insert a pink piece at slot 2 of the yellow piece",
-  "Insert another pink piece at slot 3 of the yellow piece",
-  "Insert another pink piece at slot 4 of the yellow piece",
-  "Take a green piece",
-  "Align the orientations of the 2 green pieces",
-  "Insert a green piece at slot 5 of the yellow piece",
-  "Take a yellow piece",
-  "Insert another yellow piece on the right of green and pink pieces mirroring the 1st yellow panel.",
-  "Take a blue piece",
-  "Insert a blue piece with green and pink pieces",
+  "Insert a green at slot 1 of the yellow",
+  "Insert a pink piece at slot 2 of the yellow",
+  "Insert another 2 pink at slot 3 and 4",
+  "Insert a green piece at slot 5",
+  "Connect another yellow with the green and pink",
+  "Connect a blue piece with the 2 green",
 ];
 
 const bobaCorrectSteps = [
-  "Take a cup",
-  "Add strawberry sugar syrup into the cup",
-  "Add boba into the cup",
-  "Mix boba with the syrup",
-  "Add the yogurt into the cup as a bottom layer",
-  "Take a new cup",
-  "Pour the matcha latte into the new cup",
-  "Pour coconut milk into the matcha latte",
-  "Mix up the matcha and the coconut milk",
-  "Pour mixed matcha milk into the 1st cup",
-  "Throw away the 2nd cup",
-  "Grab the milk cream",
-  "Add cream on top of the 1st cup",
+  "Add strawberry sugar syrup into a cup",
+  "Add boba",
+  "Add the yogurt as bottom layer",
+  "Pour matcha latte",
+  "Pour coconut milk",
+  "Add milk cream on the top",
   "Add matcha powder",
-  "Add a straw",
 ];
 
 const tableCorrectSteps = [
-  "Insert a number four piece at slot one of a number three piece",
-  "Connect the other side of the number four piece with a new number three piece",
-  "Take another number four piece",
-  "Insert the number four piece at slot two between the two number three pieces",
-  "Connect the number one piece on top of the two number three pieces",
-  "Connect a number two piece at the remaining slot of the number one piece",
-  "Connect a number five piece with a number six piece",
-  "Connect another number five piece with the number six piece",
-  "Connect a second number six piece on the other end of the number five pieces",
-  "Connect a number eight piece with a number nine piece",
-  "Connect another number eight piece with the number nine piece",
-  "Connect a second number nine piece on the other end of the number eight pieces",
-  "Connect a number five piece with a number six piece",
-  "Connect another number five piece with the number six piece",
-  "Connect a second number six piece on the other end of the number five pieces",
+  "Insert a No.4 at slot 1 of a No.3",
+  "Connect another No.3 with the No.4",
+  "Insert a No.4 at slot 2 of the No.3",
+  "Connect a No.1 on top of the 2 No.3",
+  "Connect a No.2 with the No.1",
+  "Connect 2 No.5 with a No.6",
+  "Connect another No.6 with the No.5",
+];
+
+const sandwichDistractorSteps = [
+  "Add peppers",
+  "Add the green celery",
+  "Add water into a cup",
 ];
 
 const shelfDistractorSteps = [
-  "Take a scissors",
-  "Insert a purple piece at slot 3",
+  "Insert a purple at slot 3 of the yellow",
   "Insert a pink piece at slot 5",
   "Take a black piece",
-  "Take a marker pen",
 ];
 
 const bobaDistractorSteps = [
   "Add white sugar to the cup",
-  "Take one more plate",
-  "Put a piece of lemon on the edge of the cup",
-  "Pour out 25% portion of the first cup into the trash can",
-  "Stir the cup",
+  "Mix up the current cup",
+  "Add a piece of lemon on the edge",
 ];
 
 const tableDistractorSteps = [
-  "Insert a number seven piece at slot two of a number three piece",
-  "Take a number seven piece",
-  "Connect a number five piece with a number nine piece",
-  "Connect a number six piece with a number eight piece",
   "Take a cutting knife",
+  "Connect a No.5 with a No.9",
+  "Connect a No.6 with a No.8",
 ];
 
 const randomizedTaskConfigs = {
+  sandwich: {
+    correct: correctTasks(sandwichCorrectSteps, "sandwich", "sandwich"),
+    distractorSteps: sandwichDistractorSteps,
+    folder: "sandwich-distractors",
+    prefix: "sandwich",
+    distractors: ["A", "B", "C"],
+  },
   shelf: {
     correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
     distractorSteps: shelfDistractorSteps,
     folder: "shelf-assembly-distractors",
     prefix: "shelf",
-    distractors: ["A", "B", "C", "D", "E"],
+    distractors: ["A", "B", "C"],
   },
   boba: {
     correct: correctTasks(bobaCorrectSteps, "boba", "boba"),
     distractorSteps: bobaDistractorSteps,
     folder: "boba-distractors",
     prefix: "boba",
-    distractors: ["A", "B", "C", "D", "E"],
+    distractors: ["A", "B", "C"],
   },
   table: {
     correct: correctTasks(tableCorrectSteps, "table-assembly", "table_assembly"),
     distractorSteps: tableDistractorSteps,
     folder: "table-assembly-distractors",
     prefix: "table_assembly",
-    distractors: ["A", "B", "C", "D", "E"],
+    distractors: ["A", "B", "C"],
   },
 } satisfies Record<
-  "shelf" | "boba" | "table",
+  "sandwich" | "shelf" | "boba" | "table",
   {
     correct: Task[];
     distractorSteps: string[];
@@ -198,123 +205,76 @@ function seededRandom(seedText: string) {
 }
 
 function randomizedStudyTasks(
-  planId: "shelf" | "boba" | "table",
+  planId: "sandwich" | "shelf" | "boba" | "table",
   participantId: number,
 ) {
   const config = randomizedTaskConfigs[planId];
   const random = seededRandom(`${planId}-${participantId}`);
+  const distractorBuckets = buildDistractorBuckets(
+    config.distractors.map((distractor, index) => ({
+      insertAfterCorrectStep: randomChoice(
+        DISTRACTOR_INSERT_WINDOWS[index].allowedAfterCorrectSteps,
+        random,
+      ),
+      task: {
+        name: config.distractorSteps[index],
+        correctOptions: [],
+        incorrectOptions: [{
+          text: config.distractorSteps[index],
+          audioSrc: `/audio/${config.folder}/${config.prefix}_${distractor}.mp3`,
+        }],
+        mainKind: "incorrect" as const,
+      },
+    })),
+    random,
+  );
 
-  return Array.from({ length: 5 }, (_, blockIndex) => {
-    const block = config.correct.slice(blockIndex * 3, blockIndex * 3 + 3);
-    const position = blockIndex === 0
-      ? 1 + Math.floor(random() * 3)
-      : Math.floor(random() * 4);
-    const distractor = config.distractors[blockIndex];
-    const text = config.distractorSteps[blockIndex];
-    const wrong: Task = {
-      name: text,
-      correctOptions: [],
-      incorrectOptions: [{
-        text,
-        audioSrc: `/audio/${config.folder}/${config.prefix}_${distractor}.mp3`,
-      }],
-      mainKind: "incorrect",
-    };
-    return [...block.slice(0, position), wrong, ...block.slice(position)];
-  }).flat();
+  return config.correct.flatMap((task, index) => [
+    task,
+    ...(distractorBuckets.get(index + 1) ?? []),
+  ]);
+}
+
+function randomChoice<T>(values: T[], random: () => number) {
+  return values[Math.floor(random() * values.length)];
+}
+
+function buildDistractorBuckets(
+  distractors: { insertAfterCorrectStep: number; task: Task }[],
+) {
+  const buckets = new Map<number, Task[]>();
+  for (const distractor of distractors) {
+    const bucket = buckets.get(distractor.insertAfterCorrectStep) ?? [];
+    bucket.push(distractor.task);
+    buckets.set(distractor.insertAfterCorrectStep, bucket);
+  }
+  return buckets;
 }
 
 const plans: Plan[] = [
+  {
+    id: "training",
+    code: "T",
+    eyebrow: "TRAINING",
+    title: "Training plan",
+    description: "Practice the five-step cube training task before the study tasks.",
+    tasks: correctTasks(trainingCorrectSteps, "training", "training"),
+  },
   {
     id: "sandwich",
     code: "A",
     eyebrow: "WIZARD OF OZ · TASK A",
     title: "Sandwich plan",
     description:
-      "Choose a blue alternative correct option or a red incorrect instruction, mark the participant's final act, then classify their reliance.",
-    tasks: [
-      {
-        name: "Bread",
-        correctOptions: [
-          {
-            text: "Take a piece of bread and put in a plate.",
-            audioSrc: "/audio/sandwich/step01_main_take_bread.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Ketchup",
-        correctOptions: [
-          {
-            text: "Add ketchup",
-            audioSrc: "/audio/sandwich/step02_alt_add_ketchup.mp3",
-          },
-        ],
-        incorrectOptions: [
-          {
-            text: "Add ketchup and lemon pieces",
-            audioSrc:
-              "/audio/sandwich/step02_main_add_ketchup_lemon_pieces.wav",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Cheese",
-        correctOptions: [
-          {
-            text: "Add a piece of cheese.",
-            audioSrc: "/audio/sandwich/step03_main_add_cheese.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Ham",
-        correctOptions: [
-          {
-            text: "Add a piece of ham.",
-            audioSrc: "/audio/sandwich/step04_main_add_ham.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Bread",
-        correctOptions: [
-          {
-            text: "Add bread",
-            audioSrc: "/audio/sandwich/step05_alt_add_bread.mp3",
-          },
-        ],
-        incorrectOptions: [
-          {
-            text: "Put celery into this and add bread",
-            audioSrc:
-              "/audio/sandwich/step05_main_put_celery_add_bread.wav",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Microwave",
-        correctOptions: [
-          {
-            text: "Put into microwave.",
-            audioSrc: "/audio/sandwich/step06_main_put_microwave.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-    ],
+      "Guide the 10-step sandwich preparation with participant-stable distractor instructions.",
+    tasks: correctTasks(sandwichCorrectSteps, "sandwich", "sandwich"),
   },
   {
     id: "shelf",
     code: "B",
     eyebrow: "WIZARD OF OZ · TASK B",
     title: "Shelf assembly plan",
-    description: "Guide the 15-step shelf assembly and record the participant's decision for every AI instruction.",
+    description: "Guide the 10-step shelf assembly with participant-stable distractor instructions.",
     tasks: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
   },
   {
@@ -322,136 +282,8 @@ const plans: Plan[] = [
     code: "C",
     eyebrow: "WIZARD OF OZ · TASK C",
     title: "Boba tea plan",
-    description: "Guide the 15-step boba tea preparation and record the participant's decision for every AI instruction.",
+    description: "Guide the 10-step boba tea preparation with participant-stable distractor instructions.",
     tasks: correctTasks(bobaCorrectSteps, "boba", "boba"),
-    /*
-      {
-        name: "Take a cup",
-        correctOptions: [
-          {
-            text: "Take an empty cup and put in front of you",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step01_main_take_cup.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Add strawberry sugar syrup",
-        correctOptions: [
-          {
-            text: "Add strawberry sugar syrup into the cup",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step02_main_add_strawberry_syrup.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Add boba and coat every pearl",
-        correctOptions: [
-          {
-            text: "Add boba",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step03_alt_add_boba.mp3",
-          },
-        ],
-        incorrectOptions: [
-          {
-            text: "Add boba and a few peppers",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step03_main_add_boba_peppers.wav",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Add strawberry yogurt as a bottom layer",
-        correctOptions: [
-          {
-            text: "Add strawberry yogurt as the bottom layer",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step04_main_add_strawberry_yogurt.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Take a second cup",
-        correctOptions: [
-          {
-            text: "Take a second empty cup",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step05_main_take_second_cup.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Mix matcha latte and coconut milk in the 2nd cup",
-        correctOptions: [
-          {
-            text: "Mix matcha latte and coconut milk in the 2nd cup",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step06_mix_matcha_latte_coconut_milk.wav",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Pour into the first cup as the 2nd layer",
-        correctOptions: [
-          {
-            text: "Pour into the first cup as the 2nd layer",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step07_main_pour_second_layer.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Pour cream on the top of the first cup",
-        correctOptions: [
-          {
-            text: "Pour in the cream on top as 3rd layer",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step08_alt_matcha_third_layer.wav",
-          },
-        ],
-        incorrectOptions: [
-          {
-            text: "Pour in the matcha cream and stir until evenly mixed.",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step08_main_pour_matcha_stir.wav",
-          },
-        ],
-        mainKind: "incorrect",
-      },
-      {
-        name: "Add matcha powder on top",
-        correctOptions: [
-          {
-            text: "Add matcha powder on the top",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step09_main_add_matcha_powder.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-      {
-        name: "Add a straw and taste",
-        correctOptions: [
-          {
-            text: "Add a straw and have a taste",
-            audioSrc:
-              "/audio/strawberry-matcha-drink/step10_main_add_straw.mp3",
-          },
-        ],
-        mainKind: "correct",
-      },
-    ],
-  },
-  */
   },
   {
     id: "table",
@@ -459,7 +291,7 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK D",
     title: "Table assembly plan",
     description:
-      "Guide the 15-step table assembly and record the participant's decision for every AI instruction.",
+      "Guide the 10-step table assembly with participant-stable distractor instructions.",
     tasks: correctTasks(tableCorrectSteps, "table-assembly", "table_assembly"),
   },
 ];
@@ -516,7 +348,7 @@ export default function Home() {
   const touchStartX = useRef<number | null>(null);
 
   const selectedPlan = plans[activePlanIndex];
-  const activePlan = selectedPlan.id === "shelf" || selectedPlan.id === "boba" || selectedPlan.id === "table"
+  const activePlan = selectedPlan.id === "sandwich" || selectedPlan.id === "shelf" || selectedPlan.id === "boba" || selectedPlan.id === "table"
     ? { ...selectedPlan, tasks: randomizedStudyTasks(selectedPlan.id, participantId) }
     : selectedPlan;
   const activeState = taskState[activePlan.id] ?? emptyPlanState(activePlan);
@@ -583,7 +415,7 @@ export default function Home() {
   useEffect(() => {
     if (!hydrated) return;
     const selected = plans[activePlanIndex];
-    const plan = selected.id === "shelf" || selected.id === "boba" || selected.id === "table"
+    const plan = selected.id === "sandwich" || selected.id === "shelf" || selected.id === "boba" || selected.id === "table"
       ? { ...selected, tasks: randomizedStudyTasks(selected.id, participantId) }
       : selected;
     void publishProgress({
