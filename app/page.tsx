@@ -23,7 +23,7 @@ type LogEntry = {
   participantId: number;
   planId: PlanId;
   planTitle: string;
-  task: number;
+  task: number | "";
   stepName: string;
   action: string;
   detail: string;
@@ -36,11 +36,16 @@ type InstructionOption = {
   text: string;
 };
 
+type AudioOverrides = Record<number, string>;
+
 type Task = {
   name: string;
   correctOptions: InstructionOption[];
   incorrectOptions?: InstructionOption[];
   mainKind: CueKind;
+  actionLabel?: string;
+  decisionDisabled?: boolean;
+  sequenceNumber?: number;
 };
 
 type Plan = {
@@ -65,8 +70,13 @@ const trainingCorrectSteps = [
   "Put a square piece at slot 1",
   "Put a square piece at slot 2",
   "Put a square piece at slot 3",
+  "Put a square piece at slot 4",
   "Put a long piece on the top",
 ];
+
+const trainingAudioOverrides = {
+  4: "/audio/training/training_slot4.mp3",
+} satisfies AudioOverrides;
 
 const sandwichCorrectSteps = [
   "Take a plate",
@@ -176,17 +186,55 @@ function correctTasks(
   steps: string[],
   audioFolder: string,
   audioPrefix: string,
+  audioOverrides: AudioOverrides = {},
 ): Task[] {
   return steps.map((text, index) => ({
     name: text,
     correctOptions: [
       {
         text,
-        audioSrc: `/audio/${audioFolder}/${audioPrefix}_${String(index + 1).padStart(2, "0")}.mp3`,
+        audioSrc:
+          audioOverrides[index] ??
+          `/audio/${audioFolder}/${audioPrefix}_${String(index + 1).padStart(2, "0")}.mp3`,
       },
     ],
     mainKind: "correct",
   }));
+}
+
+function withBoundaryTasks(tasks: Task[]): Task[] {
+  const numberedTasks = tasks.map((task, index) => ({
+    ...task,
+    sequenceNumber: index + 1,
+  }));
+
+  return [
+    {
+      name: "Task begin",
+      correctOptions: [
+        {
+          text: "Task begin",
+          audioSrc: "/audio/session/task_begin.mp3",
+        },
+      ],
+      mainKind: "correct",
+      actionLabel: "start",
+      decisionDisabled: true,
+    },
+    ...numberedTasks,
+    {
+      name: "Task complete",
+      correctOptions: [
+        {
+          text: "Task complete",
+          audioSrc: "/audio/session/task_complete.mp3",
+        },
+      ],
+      mainKind: "correct",
+      actionLabel: "complete",
+      decisionDisabled: true,
+    },
+  ];
 }
 
 function seededRandom(seedText: string) {
@@ -229,10 +277,12 @@ function randomizedStudyTasks(
     random,
   );
 
-  return config.correct.flatMap((task, index) => [
-    task,
-    ...(distractorBuckets.get(index + 1) ?? []),
-  ]);
+  return withBoundaryTasks(
+    config.correct.flatMap((task, index) => [
+      task,
+      ...(distractorBuckets.get(index + 1) ?? []),
+    ]),
+  );
 }
 
 function randomChoice<T>(values: T[], random: () => number) {
@@ -258,7 +308,7 @@ const plans: Plan[] = [
     eyebrow: "TRAINING",
     title: "Training plan",
     description: "Practice the five-step cube training task before the study tasks.",
-    tasks: correctTasks(trainingCorrectSteps, "training", "training"),
+    tasks: withBoundaryTasks(correctTasks(trainingCorrectSteps, "training", "training", trainingAudioOverrides)),
   },
   {
     id: "sandwich",
@@ -267,7 +317,7 @@ const plans: Plan[] = [
     title: "Sandwich plan",
     description:
       "Guide the 10-step sandwich preparation with participant-stable distractor instructions.",
-    tasks: correctTasks(sandwichCorrectSteps, "sandwich", "sandwich"),
+    tasks: withBoundaryTasks(correctTasks(sandwichCorrectSteps, "sandwich", "sandwich")),
   },
   {
     id: "shelf",
@@ -275,7 +325,7 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK B",
     title: "Shelf assembly plan",
     description: "Guide the 10-step shelf assembly with participant-stable distractor instructions.",
-    tasks: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
+    tasks: withBoundaryTasks(correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf")),
   },
   {
     id: "boba",
@@ -283,7 +333,7 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK C",
     title: "Boba tea plan",
     description: "Guide the 10-step boba tea preparation with participant-stable distractor instructions.",
-    tasks: correctTasks(bobaCorrectSteps, "boba", "boba"),
+    tasks: withBoundaryTasks(correctTasks(bobaCorrectSteps, "boba", "boba")),
   },
   {
     id: "table",
@@ -292,7 +342,7 @@ const plans: Plan[] = [
     title: "Table assembly plan",
     description:
       "Guide the 10-step table assembly with participant-stable distractor instructions.",
-    tasks: correctTasks(tableCorrectSteps, "table-assembly", "table_assembly"),
+    tasks: withBoundaryTasks(correctTasks(tableCorrectSteps, "table-assembly", "table_assembly")),
   },
 ];
 
@@ -453,8 +503,13 @@ export default function Home() {
   const elapsed = startedAt
     ? Math.max(0, Math.floor(((completedAt ?? now) - startedAt) / 1000))
     : 0;
-  const recorded = Object.values(activeState).filter((item) => item.decision).length;
-  const progress = Math.round((recorded / activePlan.tasks.length) * 100);
+  const decisionTaskNumbers = activePlan.tasks.flatMap((task, index) =>
+    task.decisionDisabled ? [] : [index + 1],
+  );
+  const recorded = decisionTaskNumbers.filter(
+    (taskNumber) => activeState[taskNumber]?.decision,
+  ).length;
+  const progress = Math.round((recorded / decisionTaskNumbers.length) * 100);
 
   const syncLogToSheet = async (entry: LogEntry) => {
     if (!sheetSyncUrl.trim()) {
@@ -502,8 +557,8 @@ export default function Home() {
     const audio = new Audio(
       `${PUBLIC_BASE_PATH}${
         isStarting
-          ? "/audio/session/task_begin.wav"
-          : "/audio/session/task_completed.wav"
+          ? "/audio/session/task_begin.mp3"
+          : "/audio/session/task_complete.mp3"
       }`,
     );
     audio.preload = "auto";
@@ -545,7 +600,7 @@ export default function Home() {
       participantId,
       planId,
       planTitle: plan.title,
-      task,
+      task: plan.tasks[task - 1]?.sequenceNumber ?? "",
       stepName: plan.tasks[task - 1]?.name ?? `Task ${task}`,
       action,
       detail,
@@ -693,7 +748,7 @@ export default function Home() {
         entry.participantId,
         entry.planTitle ?? plan.title,
         entry.task,
-        entry.stepName ?? plan.tasks[entry.task - 1].name,
+        entry.stepName,
         entry.action,
         entry.detail,
         entry.timestamp,
@@ -875,7 +930,7 @@ export default function Home() {
                 <span style={{ width: `${progress}%` }} />
               </div>
               <p>
-                {recorded}/{activePlan.tasks.length} decisions recorded
+                {recorded}/{decisionTaskNumbers.length} decisions recorded
               </p>
             </div>
           </section>
@@ -910,7 +965,7 @@ export default function Home() {
                     >
                       <div className="task-cell" role="rowheader">
                         <div className="step-number">
-                          {String(taskNumber).padStart(2, "0")}
+                          {task.sequenceNumber ? String(task.sequenceNumber).padStart(2, "0") : ""}
                         </div>
                         <div className="step-copy">
                           <strong>{task.name}</strong>
@@ -1004,7 +1059,7 @@ export default function Home() {
                               task.mainKind,
                               0,
                               true,
-                              "AI audio",
+                              task.actionLabel ?? "AI audio",
                             );
                           }}
                           aria-label={`Play main AI audio for task ${taskNumber}`}
@@ -1021,6 +1076,9 @@ export default function Home() {
                       </div>
 
                       {(["accept", "reject"] as const).map((decision) => {
+                        if (task.decisionDisabled) {
+                          return <div role="cell" className="action-cell is-empty" key={decision} />;
+                        }
                         const selected = state.decision === decision;
                         const label = decision === "accept" ? "Accept" : "Reject";
                         return (

@@ -26,11 +26,26 @@ test("uses training plus 7-correct-step study scripts with participant IDs", asy
   assert.match(page, /shelfCorrectSteps = \[/);
   assert.match(page, /bobaCorrectSteps = \[/);
   assert.match(page, /tableCorrectSteps = \[/);
-  assert.match(page, /correctTasks\(trainingCorrectSteps, "training", "training"\)/);
+  assert.match(page, /correctTasks\(trainingCorrectSteps, "training", "training", trainingAudioOverrides\)/);
   assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
   assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf"\)/);
   assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba"\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
+});
+
+test("inserts the training slot 4 step after the original fourth training action", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(
+    page,
+    /"Put a square piece at slot 3",\s*"Put a square piece at slot 4",\s*"Put a long piece on the top"/,
+  );
+  assert.match(page, /trainingAudioOverrides/);
+  assert.match(page, /4: "\/audio\/training\/training_slot4\.mp3"/);
+  assert.match(
+    page,
+    /correctTasks\(trainingCorrectSteps, "training", "training", trainingAudioOverrides\)/,
+  );
 });
 
 test("allows training in progress sync validators", async () => {
@@ -41,6 +56,25 @@ test("allows training in progress sync validators", async () => {
 
   assert.match(progressSync, /new Set\(\["training", "sandwich", "shelf", "boba", "table"\]\)/);
   assert.match(script, /\["training", "sandwich", "shelf", "boba", "table"\]/);
+});
+
+test("adds logged task boundary rows without accept or reject decisions", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /withBoundaryTasks/);
+  assert.match(page, /numberedTasks = tasks\.map/);
+  assert.match(page, /sequenceNumber: index \+ 1/);
+  assert.match(page, /name: "Task begin"/);
+  assert.match(page, /audioSrc: "\/audio\/session\/task_begin\.mp3"/);
+  assert.match(page, /actionLabel: "start"/);
+  assert.match(page, /name: "Task complete"/);
+  assert.match(page, /audioSrc: "\/audio\/session\/task_complete\.mp3"/);
+  assert.match(page, /actionLabel: "complete"/);
+  assert.match(page, /task\.decisionDisabled/);
+  assert.match(page, /return <div role="cell" className="action-cell is-empty" key=\{decision\} \/>/);
+  assert.match(page, /playInstruction\([\s\S]*task\.actionLabel \?\? "AI audio"/);
+  assert.match(page, /task\.sequenceNumber \? String\(task\.sequenceNumber\)\.padStart\(2, "0"\) : ""/);
+  assert.match(page, /task: plan\.tasks\[task - 1\]\?\.sequenceNumber \?\? ""/);
 });
 
 test("uses a bounded participant dropdown and a cross for recorded rejection", async () => {
