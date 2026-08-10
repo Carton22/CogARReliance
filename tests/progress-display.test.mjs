@@ -4,6 +4,16 @@ import test from "node:test";
 
 const pageUrl = new URL("../app/page.tsx", import.meta.url);
 
+function matchingBraceIndex(source, openBraceIndex) {
+  let depth = 0;
+  for (let index = openBraceIndex; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    if (source[index] === "}") depth -= 1;
+    if (depth === 0) return index;
+  }
+  return -1;
+}
+
 test("links the selected participant to the separate progress route in the same tab", async () => {
   const page = await readFile(pageUrl, "utf8");
   assert.match(page, /href=\{`\$\{PUBLIC_BASE_PATH\}\/progress\?participant=\$\{participantId\}`\}/);
@@ -28,11 +38,19 @@ test("publishes progress only for numbered recorded AI audio", async () => {
   assert.match(recordedPlayback, /publishActiveProgress\(progressStep\)/);
   assert.doesNotMatch(recordedPlayback, /publishActiveProgress\(taskNumber\)/);
   assert.doesNotMatch(playInstruction.slice(0, recordStart), /publishActiveProgress/);
-  assert.match(recordedPlayback, /updateTask\(planId, taskNumber/);
-  assert.match(recordedPlayback, /addLog\(/);
+  const progressGuardStart = recordedPlayback.indexOf("if (progressStep !== null)");
+  const progressGuardEnd = matchingBraceIndex(
+    recordedPlayback,
+    recordedPlayback.indexOf("{", progressGuardStart),
+  );
+  const updateTaskStart = recordedPlayback.indexOf("updateTask(planId, taskNumber");
+  const addLogStart = recordedPlayback.indexOf("addLog(");
+  assert.ok(progressGuardEnd > progressGuardStart);
+  assert.ok(updateTaskStart > progressGuardEnd);
+  assert.ok(addLogStart > progressGuardEnd);
   assert.ok(
     recordedPlayback.indexOf("publishActiveProgress(progressStep)") <
-      recordedPlayback.indexOf("updateTask(planId, taskNumber"),
+      updateTaskStart,
   );
   assert.match(page, /optionIndex,\s*false,/);
 });
