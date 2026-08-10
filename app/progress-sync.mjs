@@ -68,6 +68,14 @@ export function progressPercentage(progress) {
   return (current / progress.totalSteps) * 100;
 }
 
+export function countProgressSteps(tasks) {
+  return tasks.filter((task) => task.sequenceNumber !== undefined).length;
+}
+
+export function progressStepForTask(task) {
+  return task?.sequenceNumber ?? null;
+}
+
 export async function publishProgress(progress, fetchImpl = globalThis.fetch) {
   const normalized = normalizeProgress(progress);
   if (!normalized) throw new TypeError("Invalid progress state");

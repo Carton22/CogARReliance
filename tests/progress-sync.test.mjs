@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  countProgressSteps,
   fetchProgress,
   formatParticipantLabel,
   normalizeParticipantId,
   normalizeProgress,
   participantProgressUrl,
   progressPercentage,
+  progressStepForTask,
   publishProgress,
   selectNewerProgress,
 } from "../app/progress-sync.mjs";
@@ -18,6 +20,21 @@ const valid = {
   totalSteps: 20,
   updatedAt: "2026-08-04T12:00:00.000Z",
 };
+
+test("maps only numbered task rows into progress", () => {
+  const tasks = [
+    { name: "Task begin" },
+    { name: "Step one", sequenceNumber: 1 },
+    { name: "Step two", sequenceNumber: 2 },
+    { name: "Task complete" },
+  ];
+
+  assert.equal(countProgressSteps(tasks), 2);
+  assert.equal(progressStepForTask(tasks[0]), null);
+  assert.equal(progressStepForTask(tasks[1]), 1);
+  assert.equal(progressStepForTask(tasks[2]), 2);
+  assert.equal(progressStepForTask(tasks[3]), null);
+});
 
 test("normalizes participant IDs into the supported range", () => {
   assert.equal(normalizeParticipantId("7"), 7);

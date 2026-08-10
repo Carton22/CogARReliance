@@ -4,6 +4,16 @@ import test from "node:test";
 
 const pageUrl = new URL("../app/page.tsx", import.meta.url);
 
+function matchingBraceIndex(source, openBraceIndex) {
+  let depth = 0;
+  for (let index = openBraceIndex; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    if (source[index] === "}") depth -= 1;
+    if (depth === 0) return index;
+  }
+  return -1;
+}
+
 test("links the selected participant to the separate progress route in the same tab", async () => {
   const page = await readFile(pageUrl, "utf8");
   assert.match(page, /href=\{`\$\{PUBLIC_BASE_PATH\}\/progress\?participant=\$\{participantId\}`\}/);
@@ -11,24 +21,56 @@ test("links the selected participant to the separate progress route in the same 
   assert.doesNotMatch(page, /target=["']_blank["']/);
 });
 
-test("publishes progress only from recorded AI audio playback", async () => {
+test("publishes progress only for numbered recorded AI audio", async () => {
   const page = await readFile(pageUrl, "utf8");
   const playStart = page.indexOf("const playInstruction");
   const playEnd = page.indexOf("const markDecision", playStart);
   const playInstruction = page.slice(playStart, playEnd);
   const recordStart = playInstruction.indexOf("if (shouldRecord)");
+  const recordedPlayback = playInstruction.slice(recordStart);
+
   assert.ok(recordStart > 0);
-  assert.match(playInstruction.slice(recordStart), /publishActiveProgress\(taskNumber\)/);
+  assert.match(
+    recordedPlayback,
+    /const progressStep = progressStepForTask\(activePlan\.tasks\[taskNumber - 1\]\)/,
+  );
+  assert.match(recordedPlayback, /if \(progressStep !== null\)/);
+  assert.match(recordedPlayback, /publishActiveProgress\(progressStep\)/);
+  assert.doesNotMatch(recordedPlayback, /publishActiveProgress\(taskNumber\)/);
   assert.doesNotMatch(playInstruction.slice(0, recordStart), /publishActiveProgress/);
+  const progressGuardStart = recordedPlayback.indexOf("if (progressStep !== null)");
+  const progressGuardEnd = matchingBraceIndex(
+    recordedPlayback,
+    recordedPlayback.indexOf("{", progressGuardStart),
+  );
+  const updateTaskStart = recordedPlayback.indexOf("updateTask(planId, taskNumber");
+  const addLogStart = recordedPlayback.indexOf("addLog(");
+  assert.ok(progressGuardEnd > progressGuardStart);
+  assert.ok(updateTaskStart > progressGuardEnd);
+  assert.ok(addLogStart > progressGuardEnd);
+  assert.ok(
+    recordedPlayback.indexOf("publishActiveProgress(progressStep)") <
+      updateTaskStart,
+  );
   assert.match(page, /optionIndex,\s*false,/);
 });
 
-test("initializes and resets the active plan at step zero", async () => {
+test("initializes and resets the active plan at step zero with a countable total", async () => {
   const page = await readFile(pageUrl, "utf8");
+  const publisherStart = page.indexOf("const publishActiveProgress");
+  const publisherEnd = page.indexOf("useEffect", publisherStart);
+  const publisher = page.slice(publisherStart, publisherEnd);
+  assert.match(publisher, /totalSteps:\s*countProgressSteps\(activePlan\.tasks\)/);
+  assert.doesNotMatch(publisher, /totalSteps:\s*activePlan\.tasks\.length/);
+
   const hydrationStart = page.indexOf("if (!hydrated) return;", page.indexOf("const activeState"));
   const hydrationEnd = page.indexOf("}, [activePlanIndex, hydrated, participantId]);", hydrationStart);
+  const initialization = page.slice(hydrationStart, hydrationEnd);
   assert.ok(hydrationStart > 0 && hydrationEnd > hydrationStart);
-  assert.match(page.slice(hydrationStart, hydrationEnd), /currentStep:\s*0/);
+  assert.match(initialization, /currentStep:\s*0/);
+  assert.match(initialization, /totalSteps:\s*countProgressSteps\(plan\.tasks\)/);
+  assert.doesNotMatch(initialization, /totalSteps:\s*plan\.tasks\.length/);
+
   const resetStart = page.indexOf("const resetSession");
   const resetEnd = page.indexOf("const handleParticipantIdChange", resetStart);
   assert.match(page.slice(resetStart, resetEnd), /publishActiveProgress\(0\)/);
