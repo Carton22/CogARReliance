@@ -7,7 +7,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { DEFAULT_SHEET_SYNC_URL, publishProgress } from "./progress-sync.mjs";
+import {
+  countProgressSteps,
+  DEFAULT_SHEET_SYNC_URL,
+  progressStepForTask,
+  publishProgress,
+} from "./progress-sync.mjs";
 
 type Decision = "accept" | "reject";
 type PlanId = "training" | "sandwich" | "shelf" | "boba" | "table";
@@ -408,7 +413,7 @@ export default function Home() {
       participantId,
       planId: activePlan.id,
       currentStep,
-      totalSteps: activePlan.tasks.length,
+      totalSteps: countProgressSteps(activePlan.tasks),
       updatedAt: new Date().toISOString(),
     }).catch(() => undefined);
 
@@ -473,7 +478,7 @@ export default function Home() {
       participantId,
       planId: plan.id,
       currentStep: 0,
-      totalSteps: plan.tasks.length,
+      totalSteps: countProgressSteps(plan.tasks),
       updatedAt: new Date().toISOString(),
     }).catch(() => undefined);
   }, [activePlanIndex, hydrated, participantId]);
@@ -649,7 +654,10 @@ export default function Home() {
     void audio.play().catch(() => setPlayingCue(null));
 
     if (shouldRecord) {
-      void publishActiveProgress(taskNumber);
+      const progressStep = progressStepForTask(activePlan.tasks[taskNumber - 1]);
+      if (progressStep !== null) {
+        void publishActiveProgress(progressStep);
+      }
       updateTask(planId, taskNumber, (current) => ({
         ...current,
         audioPlays: current.audioPlays + 1,
