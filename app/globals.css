@@ -548,13 +548,13 @@ h2 {
 }
 
 .matrix {
-  min-width: 900px;
+  min-width: 1000px;
 }
 
 .matrix-header,
 .matrix-row {
   display: grid;
-  grid-template-columns: minmax(530px, 2.8fr) repeat(3, minmax(102px, 0.7fr));
+  grid-template-columns: minmax(530px, 2.8fr) repeat(4, minmax(102px, 0.7fr));
   align-items: stretch;
 }
 
@@ -841,6 +841,22 @@ h2 {
   border-color: var(--coral);
   background: var(--coral);
   box-shadow: 0 0 0 5px rgba(240, 100, 73, 0.12);
+  color: white;
+}
+
+.step-complete-button {
+  border-color: #142338;
+  color: #142338;
+}
+
+.step-complete-button:hover {
+  box-shadow: 0 7px 18px rgba(20, 35, 56, 0.2);
+}
+
+.step-complete-button.is-selected {
+  border-color: #142338;
+  background: #142338;
+  box-shadow: 0 0 0 5px rgba(20, 35, 56, 0.12);
   color: white;
 }
 

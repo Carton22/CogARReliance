@@ -16,6 +16,7 @@ type CueKind = "correct" | "incorrect";
 type TaskState = {
   audioPlays: number;
   decision?: Decision;
+  stepComplete?: boolean;
 };
 
 type LogEntry = {
@@ -682,6 +683,21 @@ export default function Home() {
     );
   };
 
+  const markStepComplete = (planId: PlanId, taskNumber: number) => {
+    updateTask(planId, taskNumber, (current) => {
+      return {
+        ...current,
+        stepComplete: true,
+      };
+    });
+    addLog(
+      planId,
+      taskNumber,
+      "complete",
+      "Task step completion marker",
+    );
+  };
+
   const goToPlan = (nextIndex: number) => {
     if (nextIndex < 0 || nextIndex >= plans.length) return;
     audioRef.current?.pause();
@@ -952,6 +968,7 @@ export default function Home() {
                   <div role="columnheader">AI audio</div>
                   <div role="columnheader">Accept</div>
                   <div role="columnheader">Reject</div>
+                  <div role="columnheader">Step Complete</div>
                 </div>
 
                 {activePlan.tasks.map((task, index) => {
@@ -959,7 +976,7 @@ export default function Home() {
                   const state = activeState[taskNumber] ?? { audioPlays: 0 };
                   return (
                     <div
-                      className={`matrix-row ${state.decision ? "is-complete" : ""}`}
+                      className={`matrix-row ${state.stepComplete ? "is-complete" : ""}`}
                       role="row"
                       key={`${task.name}-${taskNumber}`}
                     >
@@ -1102,6 +1119,29 @@ export default function Home() {
                           </div>
                         );
                       })}
+
+                      {task.decisionDisabled ? (
+                        <div role="cell" className="action-cell is-empty" />
+                      ) : (
+                        <div role="cell" className="action-cell">
+                          <button
+                            type="button"
+                            className={`circle-button step-complete-button ${
+                              state.stepComplete ? "is-selected" : ""
+                            }`}
+                            onClick={() =>
+                              markStepComplete(activePlan.id, taskNumber)
+                            }
+                            aria-label={`Mark task ${taskNumber} step complete`}
+                            aria-pressed={Boolean(state.stepComplete)}
+                            title="Mark step complete"
+                            data-testid={`${activePlan.id}-step-complete-${taskNumber}`}
+                          >
+                            <span aria-hidden="true">{state.stepComplete ? "✓" : ""}</span>
+                          </button>
+                          <small>{state.stepComplete ? "Complete" : "Step"}</small>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

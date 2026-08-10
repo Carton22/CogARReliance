@@ -2,13 +2,18 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("uses AI audio, Accept, and Reject as the matrix decision columns", async () => {
+test("uses AI audio, Accept, Reject, and Step Complete as the matrix columns", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
   assert.match(page, /<div role="columnheader">AI audio<\/div>/);
   assert.match(page, /<div role="columnheader">Accept<\/div>/);
   assert.match(page, /<div role="columnheader">Reject<\/div>/);
+  assert.match(page, /<div role="columnheader">Step Complete<\/div>/);
   assert.match(page, /markDecision\(/);
+  assert.match(page, /stepComplete\?: boolean/);
+  assert.match(page, /markStepComplete\(/);
+  assert.match(page, /addLog\([\s\S]*"complete",[\s\S]*"Task step completion marker"/);
+  assert.doesNotMatch(page, /"incomplete"/);
   assert.doesNotMatch(
     page,
     /User act start|User act end|App Rely|Over Rely|Under Rely|App Reject/,
