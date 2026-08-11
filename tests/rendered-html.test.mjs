@@ -140,13 +140,32 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.doesNotMatch(page, /Play distractor instruction/);
 });
 
-test("has recovery audio assets for configured wrong suggestions", async () => {
+test("has audio assets for training and configured wrong suggestions", async () => {
   const files = [
+    "../public/audio/training/training_01.mp3",
+    "../public/audio/training/training_02.mp3",
+    "../public/audio/training/training_03.mp3",
+    "../public/audio/training/training_04.mp3",
+    "../public/audio/training/training_slot4.mp3",
+    "../public/audio/training/training_05.mp3",
+    "../public/audio/training/training_06.mp3",
+    "../public/audio/sandwich-distractors/sandwich_A.mp3",
+    "../public/audio/sandwich-distractors/sandwich_B.mp3",
+    "../public/audio/sandwich-distractors/sandwich_C.mp3",
+    "../public/audio/shelf-assembly-distractors/shelf_A.mp3",
     "../public/audio/shelf-assembly-distractors/shelf_A_recovery.mp3",
+    "../public/audio/shelf-assembly-distractors/shelf_B.mp3",
     "../public/audio/shelf-assembly-distractors/shelf_B_recovery.mp3",
+    "../public/audio/shelf-assembly-distractors/shelf_C.mp3",
     "../public/audio/shelf-assembly-distractors/shelf_C_recovery.mp3",
+    "../public/audio/boba-distractors/boba_A.mp3",
+    "../public/audio/boba-distractors/boba_B.mp3",
     "../public/audio/boba-distractors/boba_B_recovery.mp3",
+    "../public/audio/boba-distractors/boba_C.mp3",
     "../public/audio/boba-distractors/boba_C_recovery.mp3",
+    "../public/audio/table-assembly-distractors/table_assembly_A.mp3",
+    "../public/audio/table-assembly-distractors/table_assembly_B.mp3",
+    "../public/audio/table-assembly-distractors/table_assembly_C.mp3",
   ];
 
   await Promise.all(
