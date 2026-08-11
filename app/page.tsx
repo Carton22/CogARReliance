@@ -662,7 +662,8 @@ export default function Home() {
     kind: CueKind,
     optionIndex: number | string = 0,
     shouldRecord = true,
-    actionLabel?: string,
+    actionLabel: string | undefined = undefined,
+    shouldPublishProgress = shouldRecord,
   ) => {
     audioRef.current?.pause();
     if (audioRef.current) audioRef.current.currentTime = 0;
@@ -675,11 +676,14 @@ export default function Home() {
     setPlayingCue(`${planId}-${taskNumber}-${kind}-${optionIndex}`);
     void audio.play().catch(() => setPlayingCue(null));
 
-    if (shouldRecord) {
+    if (shouldPublishProgress) {
       const progressStep = progressStepForTask(activePlan.tasks[taskNumber - 1]);
       if (progressStep !== null) {
         void publishActiveProgress(progressStep);
       }
+    }
+
+    if (shouldRecord) {
       updateTask(planId, taskNumber, (current) => ({
         ...current,
         audioPlays: current.audioPlays + 1,
@@ -1175,6 +1179,7 @@ export default function Home() {
                                 "recovery",
                                 true,
                                 "Recovery audio",
+                                false,
                               )
                             }
                             aria-label={`Play recovery audio for task ${taskNumber}: ${task.recoveryOptions[0].text}`}
