@@ -21,38 +21,49 @@ test("links the selected participant to the separate progress route in the same 
   assert.doesNotMatch(page, /target=["']_blank["']/);
 });
 
-test("publishes progress only for numbered recorded AI audio", async () => {
+test("publishes progress only when recorded playback opts in", async () => {
   const page = await readFile(pageUrl, "utf8");
   const playStart = page.indexOf("const playInstruction");
   const playEnd = page.indexOf("const markDecision", playStart);
   const playInstruction = page.slice(playStart, playEnd);
+  const publishStart = playInstruction.indexOf("if (shouldPublishProgress)");
+  const publishEnd = matchingBraceIndex(
+    playInstruction,
+    playInstruction.indexOf("{", publishStart),
+  );
   const recordStart = playInstruction.indexOf("if (shouldRecord)");
   const recordedPlayback = playInstruction.slice(recordStart);
 
+  assert.match(playInstruction, /shouldPublishProgress = shouldRecord/);
+  assert.ok(publishStart > 0 && publishEnd > publishStart);
   assert.ok(recordStart > 0);
   assert.match(
-    recordedPlayback,
+    playInstruction.slice(publishStart, publishEnd),
     /const progressStep = progressStepForTask\(activePlan\.tasks\[taskNumber - 1\]\)/,
   );
-  assert.match(recordedPlayback, /if \(progressStep !== null\)/);
-  assert.match(recordedPlayback, /publishActiveProgress\(progressStep\)/);
-  assert.doesNotMatch(recordedPlayback, /publishActiveProgress\(taskNumber\)/);
-  assert.doesNotMatch(playInstruction.slice(0, recordStart), /publishActiveProgress/);
-  const progressGuardStart = recordedPlayback.indexOf("if (progressStep !== null)");
-  const progressGuardEnd = matchingBraceIndex(
-    recordedPlayback,
-    recordedPlayback.indexOf("{", progressGuardStart),
-  );
+  assert.match(playInstruction.slice(publishStart, publishEnd), /if \(progressStep !== null\)/);
+  assert.match(playInstruction.slice(publishStart, publishEnd), /publishActiveProgress\(progressStep\)/);
+  assert.doesNotMatch(playInstruction, /publishActiveProgress\(taskNumber\)/);
   const updateTaskStart = recordedPlayback.indexOf("updateTask(planId, taskNumber");
   const addLogStart = recordedPlayback.indexOf("addLog(");
-  assert.ok(progressGuardEnd > progressGuardStart);
-  assert.ok(updateTaskStart > progressGuardEnd);
-  assert.ok(addLogStart > progressGuardEnd);
-  assert.ok(
-    recordedPlayback.indexOf("publishActiveProgress(progressStep)") <
-      updateTaskStart,
-  );
+  assert.ok(recordStart > publishEnd);
+  assert.ok(updateTaskStart > 0);
+  assert.ok(addLogStart > 0);
+  assert.doesNotMatch(recordedPlayback, /publishActiveProgress/);
   assert.match(page, /optionIndex,\s*false,/);
+});
+
+test("keeps recovery audio logged but progress-neutral", async () => {
+  const page = await readFile(pageUrl, "utf8");
+  const recoveryStart = page.indexOf("{task.recoveryOptions?.[0] ?");
+  const recoveryEnd = page.indexOf("aria-label={`Play recovery audio", recoveryStart);
+  const recoveryControl = page.slice(recoveryStart, recoveryEnd);
+
+  assert.ok(recoveryStart > 0 && recoveryEnd > recoveryStart);
+  assert.match(
+    recoveryControl,
+    /playInstruction\([\s\S]*"recovery",\s*true,\s*"Recovery audio",\s*false,?\s*\)/,
+  );
 });
 
 test("initializes and resets the active plan at step zero with a countable total", async () => {
