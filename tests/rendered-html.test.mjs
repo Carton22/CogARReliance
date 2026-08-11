@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("uses AI audio, Accept, Reject, and Step Complete as the matrix columns", async () => {
@@ -116,10 +116,21 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Insert a purple at slot 3 of the yellow"/);
   assert.match(page, /"Insert a pink piece at slot 5"/);
   assert.match(page, /"Take a black piece"/);
+  assert.match(page, /shelfDistractorRecoverySteps = \[/);
+  assert.match(page, /"Remove the purple"/);
+  assert.match(page, /"Remove the pink"/);
+  assert.match(page, /"Return the black"/);
   assert.match(page, /bobaDistractorSteps = \[/);
   assert.match(page, /"Add white sugar to the cup"/);
-  assert.match(page, /"Mix up the current cup"/);
+  assert.match(page, /"Grab a fork"/);
+  assert.doesNotMatch(page, /"Mix up the current cup"/);
   assert.match(page, /"Add a piece of lemon on the edge"/);
+  assert.match(page, /bobaDistractorRecoverySteps = \[/);
+  assert.match(page, /"Put the fork down"/);
+  assert.match(page, /"Remove the lemon"/);
+  assert.match(page, /recoveryOptions/);
+  assert.match(page, /Recovery audio/);
+  assert.match(page, /\$\{config\.prefix\}_\$\{distractor\}_recovery\.mp3/);
   assert.match(page, /tableCorrectSteps = \[/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
   assert.match(page, /tableDistractorSteps = \[/);
@@ -127,6 +138,20 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Connect a No\.5 with a No\.9"/);
   assert.match(page, /"Connect a No\.6 with a No\.8"/);
   assert.doesNotMatch(page, /Play distractor instruction/);
+});
+
+test("has recovery audio assets for configured wrong suggestions", async () => {
+  const files = [
+    "../public/audio/shelf-assembly-distractors/shelf_A_recovery.mp3",
+    "../public/audio/shelf-assembly-distractors/shelf_B_recovery.mp3",
+    "../public/audio/shelf-assembly-distractors/shelf_C_recovery.mp3",
+    "../public/audio/boba-distractors/boba_B_recovery.mp3",
+    "../public/audio/boba-distractors/boba_C_recovery.mp3",
+  ];
+
+  await Promise.all(
+    files.map((file) => access(new URL(file, import.meta.url))),
+  );
 });
 
 test("supports real-time Google Sheets event sync", async () => {

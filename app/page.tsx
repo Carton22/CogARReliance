@@ -48,6 +48,7 @@ type Task = {
   name: string;
   correctOptions: InstructionOption[];
   incorrectOptions?: InstructionOption[];
+  recoveryOptions?: InstructionOption[];
   mainKind: CueKind;
   actionLabel?: string;
   decisionDisabled?: boolean;
@@ -136,10 +137,22 @@ const shelfDistractorSteps = [
   "Take a black piece",
 ];
 
+const shelfDistractorRecoverySteps = [
+  "Remove the purple",
+  "Remove the pink",
+  "Return the black",
+];
+
 const bobaDistractorSteps = [
   "Add white sugar to the cup",
-  "Mix up the current cup",
+  "Grab a fork",
   "Add a piece of lemon on the edge",
+];
+
+const bobaDistractorRecoverySteps = [
+  "",
+  "Put the fork down",
+  "Remove the lemon",
 ];
 
 const tableDistractorSteps = [
@@ -159,6 +172,7 @@ const randomizedTaskConfigs = {
   shelf: {
     correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
     distractorSteps: shelfDistractorSteps,
+    recoverySteps: shelfDistractorRecoverySteps,
     folder: "shelf-assembly-distractors",
     prefix: "shelf",
     distractors: ["A", "B", "C"],
@@ -166,6 +180,7 @@ const randomizedTaskConfigs = {
   boba: {
     correct: correctTasks(bobaCorrectSteps, "boba", "boba"),
     distractorSteps: bobaDistractorSteps,
+    recoverySteps: bobaDistractorRecoverySteps,
     folder: "boba-distractors",
     prefix: "boba",
     distractors: ["A", "B", "C"],
@@ -182,6 +197,7 @@ const randomizedTaskConfigs = {
   {
     correct: Task[];
     distractorSteps: string[];
+    recoverySteps?: string[];
     folder: string;
     prefix: string;
     distractors: string[];
@@ -277,6 +293,12 @@ function randomizedStudyTasks(
           text: config.distractorSteps[index],
           audioSrc: `/audio/${config.folder}/${config.prefix}_${distractor}.mp3`,
         }],
+        recoveryOptions: config.recoverySteps?.[index]
+          ? [{
+              text: config.recoverySteps[index],
+              audioSrc: `/audio/${config.folder}/${config.prefix}_${distractor}_recovery.mp3`,
+            }]
+          : undefined,
         mainKind: "incorrect" as const,
       },
     })),
@@ -638,7 +660,7 @@ export default function Home() {
     taskNumber: number,
     option: InstructionOption,
     kind: CueKind,
-    optionIndex = 0,
+    optionIndex: number | string = 0,
     shouldRecord = true,
     actionLabel?: string,
   ) => {
@@ -971,9 +993,11 @@ export default function Home() {
                     <span className="cue-legend">
                       <span className="legend-correct">Correct</span>
                       <span className="legend-incorrect">Incorrect</span>
+                      <span className="legend-recovery">Recovery</span>
                     </span>
                   </div>
                   <div role="columnheader">AI audio</div>
+                  <div role="columnheader">Recovery audio</div>
                   <div role="columnheader">Accept</div>
                   <div role="columnheader">Reject</div>
                   <div role="columnheader">Step Complete</div>
@@ -1059,6 +1083,38 @@ export default function Home() {
                                 </button>
                               ),
                             )}
+                            {task.recoveryOptions?.map(
+                              (option, optionIndex) => (
+                                <button
+                                  type="button"
+                                  className={`cue-button cue-green ${
+                                    playingCue ===
+                                    `${activePlan.id}-${taskNumber}-correct-recovery-${optionIndex}`
+                                      ? "is-playing"
+                                      : ""
+                                  }`}
+                                  onClick={() =>
+                                    playInstruction(
+                                      activePlan.id,
+                                      taskNumber,
+                                      option,
+                                      "correct",
+                                      `recovery-${optionIndex}`,
+                                      false,
+                                    )
+                                  }
+                                  aria-label={`Play unlogged recovery instruction preview ${
+                                    optionIndex + 1
+                                  } for task ${taskNumber}: ${option.text}`}
+                                  title="Preview only — no timestamp or event log"
+                                  data-testid={`${activePlan.id}-recovery-option-${taskNumber}-${optionIndex}`}
+                                  key={option.audioSrc}
+                                >
+                                  <span aria-hidden="true">▶</span>
+                                  {option.text}
+                                </button>
+                              ),
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1099,6 +1155,41 @@ export default function Home() {
                           {state.audioPlays ? `${state.audioPlays}×` : "Play"}
                         </small>
                       </div>
+
+                      {task.recoveryOptions?.[0] ? (
+                        <div role="cell" className="action-cell">
+                          <button
+                            type="button"
+                            className={`circle-button recovery-button ${
+                              playingCue ===
+                              `${activePlan.id}-${taskNumber}-correct-recovery`
+                                ? "is-playing"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              playInstruction(
+                                activePlan.id,
+                                taskNumber,
+                                task.recoveryOptions![0],
+                                "correct",
+                                "recovery",
+                                true,
+                                "Recovery audio",
+                              )
+                            }
+                            aria-label={`Play recovery audio for task ${taskNumber}: ${task.recoveryOptions[0].text}`}
+                            title="Play recovery instruction"
+                            data-testid={`${activePlan.id}-recovery-${taskNumber}`}
+                          >
+                            <span className="speaker-icon" aria-hidden="true">
+                              ▶
+                            </span>
+                          </button>
+                          <small>Recover</small>
+                        </div>
+                      ) : (
+                        <div role="cell" className="action-cell is-empty" />
+                      )}
 
                       {(["accept", "reject"] as const).map((decision) => {
                         if (task.decisionDisabled) {
