@@ -160,7 +160,7 @@ const shelfDistractorSteps = [
 ];
 
 const shelfDistractorRecoverySteps = [
-  "Remove the purple",
+  "remove the purple at slot3",
   "remove the pink at slot5",
   "Return the black",
 ];
@@ -195,6 +195,11 @@ const randomizedTaskConfigs = {
     correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
     distractorSteps: shelfDistractorSteps,
     recoverySteps: shelfDistractorRecoverySteps,
+    recoveryAudioOverrides: {
+      0: "/audio/shelf-assembly-distractors/shelf_remove_purple_slot3.wav",
+      1: "/audio/shelf-assembly-distractors/shelf_remove_pink_slot5.wav",
+      2: "/audio/shelf-assembly-distractors/shelf_return_black.wav",
+    },
     folder: "shelf-assembly-distractors",
     prefix: "shelf",
     distractors: ["A", "B", "C"],
@@ -203,6 +208,13 @@ const randomizedTaskConfigs = {
     correct: correctTasks(bobaCorrectSteps, "boba", "boba"),
     distractorSteps: bobaDistractorSteps,
     recoverySteps: bobaDistractorRecoverySteps,
+    distractorAudioOverrides: {
+      1: "/audio/boba-distractors/boba_grab_fork.wav",
+    },
+    recoveryAudioOverrides: {
+      1: "/audio/boba-distractors/boba_put_fork_down.wav",
+      2: "/audio/boba-distractors/boba_remove_lemon.wav",
+    },
     folder: "boba-distractors",
     prefix: "boba",
     distractors: ["A", "B", "C"],
@@ -220,6 +232,8 @@ const randomizedTaskConfigs = {
     correct: Task[];
     distractorSteps: string[];
     recoverySteps?: string[];
+    distractorAudioOverrides?: Record<number, string>;
+    recoveryAudioOverrides?: Record<number, string>;
     folder: string;
     prefix: string;
     distractors: string[];
@@ -313,12 +327,16 @@ function randomizedStudyTasks(
         correctOptions: [],
         incorrectOptions: [{
           text: config.distractorSteps[index],
-          audioSrc: `/audio/${config.folder}/${config.prefix}_${distractor}.mp3`,
+          audioSrc:
+            config.distractorAudioOverrides?.[index] ??
+            `/audio/${config.folder}/${config.prefix}_${distractor}.mp3`,
         }],
         recoveryOptions: config.recoverySteps?.[index]
           ? [{
               text: config.recoverySteps[index],
-              audioSrc: `/audio/${config.folder}/${config.prefix}_${distractor}_recovery.mp3`,
+              audioSrc:
+                config.recoveryAudioOverrides?.[index] ??
+                `/audio/${config.folder}/${config.prefix}_${distractor}_recovery.mp3`,
             }]
           : undefined,
         mainKind: "incorrect" as const,
