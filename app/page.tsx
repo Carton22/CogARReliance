@@ -81,9 +81,31 @@ const trainingCorrectSteps = [
   "Put a long piece on the top",
 ];
 
-const trainingAudioOverrides = {
-  4: "/audio/training/training_slot4.mp3",
-} satisfies AudioOverrides;
+const trainingTasks = [
+  ...correctTasks(trainingCorrectSteps.slice(0, 3), "training", "training"),
+  {
+    name: "Put a long piece on the top",
+    correctOptions: [],
+    incorrectOptions: [
+      {
+        text: "Put a long piece on the top",
+        audioSrc: "/audio/training/training_06.mp3",
+      },
+    ],
+    recoveryOptions: [
+      {
+        text: "Take the long piece down",
+        audioSrc: "/audio/training/training_top_recovery.wav",
+      },
+    ],
+    mainKind: "incorrect",
+  },
+  ...correctTasks(trainingCorrectSteps.slice(3), "training", "training", {
+    0: "/audio/training/training_slot4.mp3",
+    1: "/audio/training/training_05.mp3",
+    2: "/audio/training/training_06.mp3",
+  }),
+] satisfies Task[];
 
 const sandwichCorrectSteps = [
   "Take a plate",
@@ -139,7 +161,7 @@ const shelfDistractorSteps = [
 
 const shelfDistractorRecoverySteps = [
   "Remove the purple",
-  "Remove the pink",
+  "remove the pink at slot5",
   "Return the black",
 ];
 
@@ -335,8 +357,8 @@ const plans: Plan[] = [
     code: "T",
     eyebrow: "TRAINING",
     title: "Training plan",
-    description: "Practice the five-step cube training task before the study tasks.",
-    tasks: withBoundaryTasks(correctTasks(trainingCorrectSteps, "training", "training", trainingAudioOverrides)),
+    description: "Practice the seven-step cube training task before the study tasks.",
+    tasks: withBoundaryTasks(trainingTasks),
   },
   {
     id: "sandwich",

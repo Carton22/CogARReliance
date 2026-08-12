@@ -36,6 +36,30 @@ test("maps only numbered task rows into progress", () => {
   assert.equal(progressStepForTask(tasks[3]), null);
 });
 
+test("training progress can represent seven numbered steps", () => {
+  const tasks = [
+    { name: "Task begin" },
+    { name: "Put a long piece on the ground", sequenceNumber: 1 },
+    { name: "Put a square piece at slot 1", sequenceNumber: 2 },
+    { name: "Put a square piece at slot 2", sequenceNumber: 3 },
+    { name: "Put a long piece on the top", sequenceNumber: 4 },
+    { name: "Put a square piece at slot 3", sequenceNumber: 5 },
+    { name: "Put a square piece at slot 4", sequenceNumber: 6 },
+    { name: "Put a long piece on the top", sequenceNumber: 7 },
+    { name: "Task complete" },
+  ];
+
+  assert.equal(countProgressSteps(tasks), 7);
+  assert.equal(progressStepForTask(tasks[4]), 4);
+  assert.equal(progressPercentage({
+    participantId: 7,
+    planId: "training",
+    currentStep: 4,
+    totalSteps: countProgressSteps(tasks),
+    updatedAt: "2026-08-04T12:00:00.000Z",
+  }), 4 / 7 * 100);
+});
+
 test("normalizes participant IDs into the supported range", () => {
   assert.equal(normalizeParticipantId("7"), 7);
   assert.equal(normalizeParticipantId("0"), 1);

@@ -20,36 +20,41 @@ test("uses AI audio, Accept, Reject, and Step Complete as the matrix columns", a
   );
 });
 
-test("uses training plus 7-correct-step study scripts with participant IDs", async () => {
+test("uses training plus 7-step study scripts with participant IDs", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
   assert.match(page, /participantId/);
   assert.match(page, /Array\.from\(\{ length: 36 \}/);
   assert.match(page, /id: "training"/);
   assert.match(page, /trainingCorrectSteps = \[/);
+  assert.match(page, /trainingTasks = \[/);
   assert.match(page, /sandwichCorrectSteps = \[/);
   assert.match(page, /shelfCorrectSteps = \[/);
   assert.match(page, /bobaCorrectSteps = \[/);
   assert.match(page, /tableCorrectSteps = \[/);
-  assert.match(page, /correctTasks\(trainingCorrectSteps, "training", "training", trainingAudioOverrides\)/);
+  assert.match(page, /tasks: withBoundaryTasks\(trainingTasks\)/);
   assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
   assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf"\)/);
   assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba"\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
 });
 
-test("inserts the training slot 4 step after the original fourth training action", async () => {
+test("inserts the misleading training top-piece step between steps 3 and 4", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
+  assert.match(page, /trainingTasks/);
   assert.match(
     page,
-    /"Put a square piece at slot 3",\s*"Put a square piece at slot 4",\s*"Put a long piece on the top"/,
+    /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training"\)/,
   );
-  assert.match(page, /trainingAudioOverrides/);
-  assert.match(page, /4: "\/audio\/training\/training_slot4\.mp3"/);
+  assert.match(page, /name: "Put a long piece on the top"/);
+  assert.match(page, /incorrectOptions: \[/);
+  assert.match(page, /text: "Take the long piece down"/);
+  assert.match(page, /audioSrc: "\/audio\/training\/training_top_recovery\.wav"/);
+  assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training"/);
   assert.match(
     page,
-    /correctTasks\(trainingCorrectSteps, "training", "training", trainingAudioOverrides\)/,
+    /tasks: withBoundaryTasks\(trainingTasks\)/,
   );
 });
 
@@ -118,7 +123,7 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Take a black piece"/);
   assert.match(page, /shelfDistractorRecoverySteps = \[/);
   assert.match(page, /"Remove the purple"/);
-  assert.match(page, /"Remove the pink"/);
+  assert.match(page, /"remove the pink at slot5"/);
   assert.match(page, /"Return the black"/);
   assert.match(page, /bobaDistractorSteps = \[/);
   assert.match(page, /"Add white sugar to the cup"/);
@@ -146,9 +151,9 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/training/training_02.mp3",
     "../public/audio/training/training_03.mp3",
     "../public/audio/training/training_04.mp3",
-    "../public/audio/training/training_slot4.mp3",
     "../public/audio/training/training_05.mp3",
     "../public/audio/training/training_06.mp3",
+    "../public/audio/training/training_top_recovery.wav",
     "../public/audio/sandwich-distractors/sandwich_A.mp3",
     "../public/audio/sandwich-distractors/sandwich_B.mp3",
     "../public/audio/sandwich-distractors/sandwich_C.mp3",
