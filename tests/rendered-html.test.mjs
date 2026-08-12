@@ -49,8 +49,24 @@ test("inserts the misleading training top-piece step between steps 3 and 4", asy
   );
   assert.match(page, /name: "Put a long piece on the top"/);
   assert.match(page, /incorrectOptions: \[/);
+  assert.match(
+    page,
+    /text: "Put a long piece on the top",\s+audioSrc: "\/audio\/training\/training_put_long_piece_top\.wav"/,
+  );
   assert.match(page, /text: "Take the long piece down"/);
   assert.match(page, /audioSrc: "\/audio\/training\/training_top_recovery\.wav"/);
+  assert.match(
+    page,
+    /0: "\/audio\/training\/training_put_square_slot3\.wav"/,
+  );
+  assert.match(
+    page,
+    /1: "\/audio\/training\/training_put_square_slot4\.wav"/,
+  );
+  assert.match(
+    page,
+    /2: "\/audio\/training\/training_put_long_piece_top\.wav"/,
+  );
   assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training"/);
   assert.match(
     page,
@@ -122,7 +138,7 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Insert a pink piece at slot 5"/);
   assert.match(page, /"Take a black piece"/);
   assert.match(page, /shelfDistractorRecoverySteps = \[/);
-  assert.match(page, /"Remove the purple"/);
+  assert.match(page, /"remove the purple at slot3"/);
   assert.match(page, /"remove the pink at slot5"/);
   assert.match(page, /"Return the black"/);
   assert.match(page, /bobaDistractorSteps = \[/);
@@ -145,6 +161,37 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.doesNotMatch(page, /Play distractor instruction/);
 });
 
+test("maps requested shelf and boba cues to matching TTS audio", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /"remove the purple at slot3"/);
+  assert.doesNotMatch(page, /"Remove the purple"/);
+  assert.match(
+    page,
+    /0: "\/audio\/shelf-assembly-distractors\/shelf_remove_purple_slot3\.wav"/,
+  );
+  assert.match(
+    page,
+    /1: "\/audio\/shelf-assembly-distractors\/shelf_remove_pink_slot5\.wav"/,
+  );
+  assert.match(
+    page,
+    /2: "\/audio\/shelf-assembly-distractors\/shelf_return_black\.wav"/,
+  );
+  assert.match(
+    page,
+    /1: "\/audio\/boba-distractors\/boba_grab_fork\.wav"/,
+  );
+  assert.match(
+    page,
+    /1: "\/audio\/boba-distractors\/boba_put_fork_down\.wav"/,
+  );
+  assert.match(
+    page,
+    /2: "\/audio\/boba-distractors\/boba_remove_lemon\.wav"/,
+  );
+});
+
 test("has audio assets for training and configured wrong suggestions", async () => {
   const files = [
     "../public/audio/training/training_01.mp3",
@@ -154,6 +201,9 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/training/training_05.mp3",
     "../public/audio/training/training_06.mp3",
     "../public/audio/training/training_top_recovery.wav",
+    "../public/audio/training/training_put_long_piece_top.wav",
+    "../public/audio/training/training_put_square_slot3.wav",
+    "../public/audio/training/training_put_square_slot4.wav",
     "../public/audio/sandwich-distractors/sandwich_A.mp3",
     "../public/audio/sandwich-distractors/sandwich_B.mp3",
     "../public/audio/sandwich-distractors/sandwich_C.mp3",
@@ -163,11 +213,17 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/shelf-assembly-distractors/shelf_B_recovery.mp3",
     "../public/audio/shelf-assembly-distractors/shelf_C.mp3",
     "../public/audio/shelf-assembly-distractors/shelf_C_recovery.mp3",
+    "../public/audio/shelf-assembly-distractors/shelf_remove_purple_slot3.wav",
+    "../public/audio/shelf-assembly-distractors/shelf_remove_pink_slot5.wav",
+    "../public/audio/shelf-assembly-distractors/shelf_return_black.wav",
     "../public/audio/boba-distractors/boba_A.mp3",
     "../public/audio/boba-distractors/boba_B.mp3",
     "../public/audio/boba-distractors/boba_B_recovery.mp3",
     "../public/audio/boba-distractors/boba_C.mp3",
     "../public/audio/boba-distractors/boba_C_recovery.mp3",
+    "../public/audio/boba-distractors/boba_grab_fork.wav",
+    "../public/audio/boba-distractors/boba_put_fork_down.wav",
+    "../public/audio/boba-distractors/boba_remove_lemon.wav",
     "../public/audio/table-assembly-distractors/table_assembly_A.mp3",
     "../public/audio/table-assembly-distractors/table_assembly_B.mp3",
     "../public/audio/table-assembly-distractors/table_assembly_C.mp3",
