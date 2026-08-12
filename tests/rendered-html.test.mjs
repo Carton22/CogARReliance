@@ -168,7 +168,7 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.doesNotMatch(page, /"Mix up the current cup"/);
   assert.match(page, /"Add a piece of lemon on the edge"/);
   assert.match(page, /bobaDistractorRecoverySteps = \[/);
-  assert.match(page, /"Put the fork down"/);
+  assert.match(page, /"Put the fork back"/);
   assert.match(page, /"Remove the lemon"/);
   assert.match(page, /recoveryOptions/);
   assert.match(page, /Recovery audio/);
@@ -205,7 +205,7 @@ test("maps requested shelf and boba cues to matching TTS audio", async () => {
   );
   assert.match(
     page,
-    /1: "\/audio\/boba-distractors\/boba_put_fork_down\.wav"/,
+    /1: "\/audio\/boba-distractors\/put_fork_back\.wav"/,
   );
   assert.match(
     page,
@@ -243,7 +243,7 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/boba-distractors/boba_C.mp3",
     "../public/audio/boba-distractors/boba_C_recovery.mp3",
     "../public/audio/boba-distractors/boba_grab_fork.wav",
-    "../public/audio/boba-distractors/boba_put_fork_down.wav",
+    "../public/audio/boba-distractors/put_fork_back.wav",
     "../public/audio/boba-distractors/boba_remove_lemon.wav",
     "../public/audio/table-assembly-distractors/table_assembly_A.mp3",
     "../public/audio/table-assembly-distractors/table_assembly_B.mp3",

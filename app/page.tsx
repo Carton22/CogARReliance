@@ -173,7 +173,7 @@ const bobaDistractorSteps = [
 
 const bobaDistractorRecoverySteps = [
   "",
-  "Put the fork down",
+  "Put the fork back",
   "Remove the lemon",
 ];
 
@@ -212,7 +212,7 @@ const randomizedTaskConfigs = {
       1: "/audio/boba-distractors/boba_grab_fork.wav",
     },
     recoveryAudioOverrides: {
-      1: "/audio/boba-distractors/boba_put_fork_down.wav",
+      1: "/audio/boba-distractors/put_fork_back.wav",
       2: "/audio/boba-distractors/boba_remove_lemon.wav",
     },
     folder: "boba-distractors",
