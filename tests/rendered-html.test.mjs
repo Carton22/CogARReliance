@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("uses AI audio, Accept, Reject, and Step Complete as the matrix columns", async () => {
+test("uses AI audio, Challenge / Recover, Accept, Reject, and Step Complete as the matrix columns", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
   assert.match(page, /<div role="columnheader">AI audio<\/div>/);
+  assert.match(page, /<div role="columnheader">Challenge \/ Recover<\/div>/);
   assert.match(page, /<div role="columnheader">Accept<\/div>/);
   assert.match(page, /<div role="columnheader">Reject<\/div>/);
   assert.match(page, /<div role="columnheader">Step Complete<\/div>/);
@@ -37,6 +38,26 @@ test("uses training plus 7-step study scripts with participant IDs", async () =>
   assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf"\)/);
   assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba"\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
+});
+
+test("adds logged challenge audio for numbered correct instruction rows", async () => {
+  const [page, css] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(page, /task\.mainKind === "correct" && !task\.decisionDisabled/);
+  assert.match(page, /const challengeOption = task\.correctOptions\[0\]/);
+  assert.match(page, /circle-button challenge-button/);
+  assert.match(
+    page,
+    /playInstruction\([\s\S]*challengeOption,[\s\S]*"correct",[\s\S]*"challenge",[\s\S]*true,[\s\S]*"challenge",[\s\S]*false,?\s*\)/,
+  );
+  assert.match(page, /aria-label=\{`Play challenge audio for task \$\{taskNumber\}: \$\{challengeOption\.text\}`\}/);
+  assert.match(page, /<small>Challenge<\/small>/);
+  assert.match(css, /\.challenge-button\s*\{/);
+  assert.match(css, /\.challenge-button\.is-playing\s*\{/);
+  assert.match(css, /\.recovery-button\s*\{/);
 });
 
 test("inserts the misleading training top-piece step between steps 3 and 4", async () => {

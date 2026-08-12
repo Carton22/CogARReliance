@@ -1041,7 +1041,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div role="columnheader">AI audio</div>
-                  <div role="columnheader">Recovery audio</div>
+                  <div role="columnheader">Challenge / Recover</div>
                   <div role="columnheader">Accept</div>
                   <div role="columnheader">Reject</div>
                   <div role="columnheader">Step Complete</div>
@@ -1050,6 +1050,7 @@ export default function Home() {
                 {activePlan.tasks.map((task, index) => {
                   const taskNumber = index + 1;
                   const state = activeState[taskNumber] ?? { audioPlays: 0 };
+                  const challengeOption = task.correctOptions[0];
                   return (
                     <div
                       className={`matrix-row ${state.stepComplete ? "is-complete" : ""}`}
@@ -1200,7 +1201,39 @@ export default function Home() {
                         </small>
                       </div>
 
-                      {task.recoveryOptions?.[0] ? (
+                      {task.mainKind === "correct" && !task.decisionDisabled ? (
+                        <div role="cell" className="action-cell">
+                          <button
+                            type="button"
+                            className={`circle-button challenge-button ${
+                              playingCue ===
+                              `${activePlan.id}-${taskNumber}-correct-challenge`
+                                ? "is-playing"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              playInstruction(
+                                activePlan.id,
+                                taskNumber,
+                                challengeOption,
+                                "correct",
+                                "challenge",
+                                true,
+                                "challenge",
+                                false,
+                              )
+                            }
+                            aria-label={`Play challenge audio for task ${taskNumber}: ${challengeOption.text}`}
+                            title="Play challenge instruction"
+                            data-testid={`${activePlan.id}-challenge-${taskNumber}`}
+                          >
+                            <span className="speaker-icon" aria-hidden="true">
+                              ▶
+                            </span>
+                          </button>
+                          <small>Challenge</small>
+                        </div>
+                      ) : task.recoveryOptions?.[0] ? (
                         <div role="cell" className="action-cell">
                           <button
                             type="button"

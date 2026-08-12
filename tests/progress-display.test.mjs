@@ -53,15 +53,15 @@ test("publishes progress only when recorded playback opts in", async () => {
   assert.match(page, /optionIndex,\s*false,/);
 });
 
-test("keeps recovery audio logged but progress-neutral", async () => {
+test("keeps challenge and recovery audio logged but progress-neutral", async () => {
   const page = await readFile(pageUrl, "utf8");
-  const recoveryStart = page.indexOf("{task.recoveryOptions?.[0] ?");
-  const recoveryEnd = page.indexOf("aria-label={`Play recovery audio", recoveryStart);
-  const recoveryControl = page.slice(recoveryStart, recoveryEnd);
 
-  assert.ok(recoveryStart > 0 && recoveryEnd > recoveryStart);
   assert.match(
-    recoveryControl,
+    page,
+    /playInstruction\([\s\S]*challengeOption,[\s\S]*"challenge",\s*true,\s*"challenge",\s*false,?\s*\)/,
+  );
+  assert.match(
+    page,
     /playInstruction\([\s\S]*"recovery",\s*true,\s*"Recovery audio",\s*false,?\s*\)/,
   );
 });
