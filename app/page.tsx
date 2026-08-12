@@ -89,7 +89,7 @@ const trainingTasks = [
     incorrectOptions: [
       {
         text: "Put a long piece on the top",
-        audioSrc: "/audio/training/training_06.mp3",
+        audioSrc: "/audio/training/training_put_long_piece_top.wav",
       },
     ],
     recoveryOptions: [
@@ -101,9 +101,9 @@ const trainingTasks = [
     mainKind: "incorrect",
   },
   ...correctTasks(trainingCorrectSteps.slice(3), "training", "training", {
-    0: "/audio/training/training_slot4.mp3",
-    1: "/audio/training/training_05.mp3",
-    2: "/audio/training/training_06.mp3",
+    0: "/audio/training/training_put_square_slot3.wav",
+    1: "/audio/training/training_put_square_slot4.wav",
+    2: "/audio/training/training_put_long_piece_top.wav",
   }),
 ] satisfies Task[];
 
