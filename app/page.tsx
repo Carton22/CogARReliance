@@ -167,7 +167,7 @@ const shelfDistractorRecoverySteps = [
 
 const bobaDistractorSteps = [
   "Add a little white sugar to the cup",
-  "Grab a fork",
+  "use a fork to add matcha powder",
   "Add a piece of lemon on the edge",
 ];
 
