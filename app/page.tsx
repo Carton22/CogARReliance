@@ -162,7 +162,7 @@ const shelfDistractorSteps = [
 const shelfDistractorRecoverySteps = [
   "remove the purple at slot3",
   "remove the pink at slot5",
-  "Remove the black",
+  "Remove the black piece",
 ];
 
 const bobaDistractorSteps = [
