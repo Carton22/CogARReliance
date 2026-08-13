@@ -134,7 +134,7 @@ const bobaCorrectSteps = [
   "Pour matcha latte",
   "Pour coconut milk",
   "Add milk cream on the top",
-  "Add matcha powder",
+  "Put the lid on the cup",
 ];
 
 const tableCorrectSteps = [
@@ -156,17 +156,17 @@ const sandwichDistractorSteps = [
 const shelfDistractorSteps = [
   "Insert a purple at slot 3 of the yellow",
   "Insert a pink piece at slot 5",
-  "Take a black piece",
+  "Connect a black with the 2 green",
 ];
 
 const shelfDistractorRecoverySteps = [
   "remove the purple at slot3",
   "remove the pink at slot5",
-  "Return the black",
+  "Remove the black",
 ];
 
 const bobaDistractorSteps = [
-  "Add white sugar to the cup",
+  "Add a little white sugar to the cup",
   "Grab a fork",
   "Add a piece of lemon on the edge",
 ];
