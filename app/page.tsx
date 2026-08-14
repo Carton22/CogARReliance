@@ -121,7 +121,7 @@ const shelfCorrectSteps = [
   "Classify the pieces based on color",
   "Insert a green at slot 1 of the yellow",
   "Insert a pink piece at slot 2 of the yellow",
-  "Insert another 2 pink at slot 3 and 4",
+  "Insert another 2 pink at slot 3 and 4 of the yellow",
   "Insert a green piece at slot 5",
   "Connect another yellow with the green and pink",
   "Connect a blue piece with the 2 green",
@@ -154,27 +154,27 @@ const sandwichDistractorSteps = [
 ];
 
 const shelfDistractorSteps = [
-  "Insert a purple at slot 3 of the yellow",
+  "Insert a purple piece at slot 3 of the yellow",
   "Insert a pink piece at slot 5",
   "Connect a black with the 2 green",
 ];
 
 const shelfDistractorRecoverySteps = [
-  "remove the purple at slot3",
-  "remove the pink at slot5",
-  "Remove the black piece",
+  "remove the purple piece at slot 3, because the size doesn't match",
+  "remove the pink piece at slot 5, because the shape doesn't match",
+  "Remove the black piece, because the size doesn't match",
 ];
 
 const bobaDistractorSteps = [
-  "add a little white sugar from the left bottle",
+  "add a little white sugar from the bottle on your left",
   "use a fork to add matcha powder",
-  "Add a piece of lemon on the edge",
+  "Add a piece of lemon on the edge of the cup",
 ];
 
 const bobaDistractorRecoverySteps = [
-  "",
-  "Put the fork back",
-  "Remove the lemon",
+  "add a little white sugar from the bottle on your right",
+  "Use a spoon to add matcha powder",
+  "Oh, please remove the lemon piece, because it's for delivery",
 ];
 
 const tableDistractorSteps = [
@@ -196,9 +196,9 @@ const randomizedTaskConfigs = {
     distractorSteps: shelfDistractorSteps,
     recoverySteps: shelfDistractorRecoverySteps,
     recoveryAudioOverrides: {
-      0: "/audio/shelf-assembly-distractors/shelf_remove_purple_slot3.wav",
-      1: "/audio/shelf-assembly-distractors/shelf_remove_pink_slot5.wav",
-      2: "/audio/shelf-assembly-distractors/shelf_return_black.wav",
+      0: "/audio/shelf-assembly-distractors/shelf_remove_purple_slot3.mp3",
+      1: "/audio/shelf-assembly-distractors/shelf_remove_pink_slot5.mp3",
+      2: "/audio/shelf-assembly-distractors/shelf_remove_black_piece.mp3",
     },
     folder: "shelf-assembly-distractors",
     prefix: "shelf",
@@ -212,8 +212,9 @@ const randomizedTaskConfigs = {
       1: "/audio/boba-distractors/boba_grab_fork.wav",
     },
     recoveryAudioOverrides: {
-      1: "/audio/boba-distractors/put_fork_back.wav",
-      2: "/audio/boba-distractors/boba_remove_lemon.wav",
+      0: "/audio/boba-distractors/boba_A_recovery.mp3",
+      1: "/audio/boba-distractors/boba_use_spoon_matcha.mp3",
+      2: "/audio/boba-distractors/boba_remove_lemon.mp3",
     },
     folder: "boba-distractors",
     prefix: "boba",

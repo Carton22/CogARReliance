@@ -155,24 +155,31 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Add the green celery"/);
   assert.match(page, /"Add water into a cup"/);
   assert.match(page, /shelfDistractorSteps = \[/);
-  assert.match(page, /"Insert a purple at slot 3 of the yellow"/);
+  assert.match(page, /"Insert a purple piece at slot 3 of the yellow"/);
   assert.match(page, /"Insert a pink piece at slot 5"/);
   assert.match(page, /"Connect a black with the 2 green"/);
   assert.match(page, /shelfDistractorRecoverySteps = \[/);
-  assert.match(page, /"remove the purple at slot3"/);
-  assert.match(page, /"remove the pink at slot5"/);
-  assert.match(page, /"Remove the black piece"/);
+  assert.match(page, /"remove the purple piece at slot 3, because the size doesn't match"/);
+  assert.match(page, /"remove the pink piece at slot 5, because the shape doesn't match"/);
+  assert.match(page, /"Remove the black piece, because the size doesn't match"/);
   assert.match(page, /bobaDistractorSteps = \[/);
-  assert.match(page, /"add a little white sugar from the left bottle"/);
+  assert.match(page, /"add a little white sugar from the bottle on your left"/);
+  assert.match(page, /"add a little white sugar from the bottle on your right"/);
   assert.match(page, /"use a fork to add matcha powder"/);
   assert.doesNotMatch(page, /"Mix up the current cup"/);
-  assert.match(page, /"Add a piece of lemon on the edge"/);
+  assert.match(page, /"Add a piece of lemon on the edge of the cup"/);
   assert.match(page, /bobaDistractorRecoverySteps = \[/);
-  assert.match(page, /"Put the fork back"/);
-  assert.match(page, /"Remove the lemon"/);
+  assert.match(page, /"Use a spoon to add matcha powder"/);
+  assert.match(page, /"Oh, please remove the lemon piece, because it's for delivery"/);
   assert.match(page, /recoveryOptions/);
   assert.match(page, /Recovery audio/);
   assert.match(page, /\$\{config\.prefix\}_\$\{distractor\}_recovery\.mp3/);
+  assert.match(page, /"Insert another 2 pink at slot 3 and 4 of the yellow"/);
+  assert.doesNotMatch(page, /"Insert a purple at slot 3 of the yellow"/);
+  assert.doesNotMatch(page, /"remove the purple at slot3"/);
+  assert.doesNotMatch(page, /"remove the pink at slot5"/);
+  assert.doesNotMatch(page, /"add a little white sugar from the left bottle"/);
+  assert.doesNotMatch(page, /"Put the fork back"/);
   assert.match(page, /tableCorrectSteps = \[/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
   assert.match(page, /tableDistractorSteps = \[/);
@@ -185,19 +192,18 @@ test("injects three participant-stable distractors only between the allowed 2-st
 test("maps requested shelf and boba cues to matching TTS audio", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
-  assert.match(page, /"remove the purple at slot3"/);
   assert.doesNotMatch(page, /"Remove the purple"/);
   assert.match(
     page,
-    /0: "\/audio\/shelf-assembly-distractors\/shelf_remove_purple_slot3\.wav"/,
+    /0: "\/audio\/shelf-assembly-distractors\/shelf_remove_purple_slot3\.mp3"/,
   );
   assert.match(
     page,
-    /1: "\/audio\/shelf-assembly-distractors\/shelf_remove_pink_slot5\.wav"/,
+    /1: "\/audio\/shelf-assembly-distractors\/shelf_remove_pink_slot5\.mp3"/,
   );
   assert.match(
     page,
-    /2: "\/audio\/shelf-assembly-distractors\/shelf_return_black\.wav"/,
+    /2: "\/audio\/shelf-assembly-distractors\/shelf_remove_black_piece\.mp3"/,
   );
   assert.match(
     page,
@@ -205,12 +211,18 @@ test("maps requested shelf and boba cues to matching TTS audio", async () => {
   );
   assert.match(
     page,
-    /1: "\/audio\/boba-distractors\/put_fork_back\.wav"/,
+    /0: "\/audio\/boba-distractors\/boba_A_recovery\.mp3"/,
   );
   assert.match(
     page,
-    /2: "\/audio\/boba-distractors\/boba_remove_lemon\.wav"/,
+    /1: "\/audio\/boba-distractors\/boba_use_spoon_matcha\.mp3"/,
   );
+  assert.match(
+    page,
+    /2: "\/audio\/boba-distractors\/boba_remove_lemon\.mp3"/,
+  );
+  assert.doesNotMatch(page, /shelf_return_black\.wav/);
+  assert.doesNotMatch(page, /put_fork_back\.wav/);
 });
 
 test("has audio assets for training and configured wrong suggestions", async () => {
