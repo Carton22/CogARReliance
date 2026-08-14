@@ -21,14 +21,70 @@ const RESPONSE_FORMAT = "mp3";
 const INSTRUCTIONS =
   "Speak in professional way for a presentation in academic paper and user study";
 
-const CHALLENGE_PREFIX = "I think it's appropriate to";
+// Must stay identical to CHALLENGE_PREFIXES in app/page.tsx — the app derives the
+// sentence it displays from that list, and this script speaks it into the clip.
+const CHALLENGE_PREFIXES = [
+  "I think it's appropriate to",
+  "I checked again, and it is good to",
+  "I would suggest you",
+  "My recommendation is still to",
+];
+
+// Per-plan starting offset into CHALLENGE_PREFIXES, mirroring the arguments the
+// app passes to correctTasks(). Training's two calls use offsets 1 and 4, which
+// over its six steps is the same as one run of offset 1.
+const CHALLENGE_OFFSETS = { training: 1, shelf: 0, boba: 2 };
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 // Challenge sentence rule: prefix + cue text with its first letter lowercased.
-function challenge(text) {
-  return `${CHALLENGE_PREFIX} ${text.charAt(0).toLowerCase()}${text.slice(1)}.`;
+function challenge(text, prefixIndex) {
+  const prefix = CHALLENGE_PREFIXES[prefixIndex % CHALLENGE_PREFIXES.length];
+  return `${prefix} ${text.charAt(0).toLowerCase()}${text.slice(1)}.`;
 }
+
+// Every correct step that has a challenge clip, in the order the app builds them.
+// Order matters: the prefix each step gets is CHALLENGE_OFFSETS[plan] + its index.
+const CHALLENGE_SOURCES = [
+  {
+    idPrefix: "T",
+    plan: "training",
+    steps: [
+      ["Put a long piece on the ground", "public/audio/training/training_01_challenge.mp3"],
+      ["Put a square piece at slot 1", "public/audio/training/training_02_challenge.mp3"],
+      ["Put a square piece at slot 2", "public/audio/training/training_03_challenge.mp3"],
+      ["Put a square piece at slot 3", "public/audio/training/training_put_square_slot3_challenge.mp3"],
+      ["Put a square piece at slot 4", "public/audio/training/training_put_square_slot4_challenge.mp3"],
+      ["Put a long piece on the top", "public/audio/training/training_put_long_piece_top_challenge.mp3"],
+    ],
+  },
+  {
+    idPrefix: "S",
+    plan: "shelf",
+    steps: [
+      ["Classify the pieces based on color", "public/audio/shelf-assembly/shelf_01_challenge.mp3"],
+      ["Insert a green at slot 1 of the yellow", "public/audio/shelf-assembly/shelf_02_challenge.mp3"],
+      ["Insert a pink piece at slot 2 of the yellow", "public/audio/shelf-assembly/shelf_03_challenge.mp3"],
+      ["Insert another 2 pink at slot 3 and 4 of the yellow", "public/audio/shelf-assembly/shelf_04_challenge.mp3"],
+      ["Insert a green piece at slot 5", "public/audio/shelf-assembly/shelf_05_challenge.mp3"],
+      ["Connect another yellow piece with the greens and pinks", "public/audio/shelf-assembly/shelf_06_challenge.mp3"],
+      ["Connect a blue piece with the 2 green", "public/audio/shelf-assembly/shelf_07_challenge.mp3"],
+    ],
+  },
+  {
+    idPrefix: "B",
+    plan: "boba",
+    steps: [
+      ["Add strawberry sugar syrup into a cup", "public/audio/boba/boba_01_challenge.mp3"],
+      ["Add boba", "public/audio/boba/boba_02_challenge.mp3"],
+      ["Add strawberry yogurt as the bottom layer", "public/audio/boba/boba_03_challenge.mp3"],
+      ["Pour matcha latte into the cup", "public/audio/boba/boba_04_challenge.mp3"],
+      ["Pour coconut milk into the cup", "public/audio/boba/boba_05_challenge.mp3"],
+      ["Add milk cream on the top", "public/audio/boba/boba_06_challenge.mp3"],
+      ["Put a lid on the cup", "public/audio/boba/boba_07_challenge.mp3"],
+    ],
+  },
+];
 
 const MANIFEST = [
   // Content cues — text changes to existing steps, plus one new recovery cue.
@@ -113,111 +169,15 @@ const MANIFEST = [
     path: "public/audio/boba/boba_07.mp3",
   },
 
-  // Challenge cues — training plan.
-  {
-    id: "T01",
-    text: challenge("Put a long piece on the ground"),
-    path: "public/audio/training/training_01_challenge.mp3",
-  },
-  {
-    id: "T02",
-    text: challenge("Put a square piece at slot 1"),
-    path: "public/audio/training/training_02_challenge.mp3",
-  },
-  {
-    id: "T03",
-    text: challenge("Put a square piece at slot 2"),
-    path: "public/audio/training/training_03_challenge.mp3",
-  },
-  {
-    id: "T04",
-    text: challenge("Put a square piece at slot 3"),
-    path: "public/audio/training/training_put_square_slot3_challenge.mp3",
-  },
-  {
-    id: "T05",
-    text: challenge("Put a square piece at slot 4"),
-    path: "public/audio/training/training_put_square_slot4_challenge.mp3",
-  },
-  {
-    id: "T06",
-    text: challenge("Put a long piece on the top"),
-    path: "public/audio/training/training_put_long_piece_top_challenge.mp3",
-  },
-
-  // Challenge cues — shelf assembly plan.
-  {
-    id: "S01",
-    text: challenge("Classify the pieces based on color"),
-    path: "public/audio/shelf-assembly/shelf_01_challenge.mp3",
-  },
-  {
-    id: "S02",
-    text: challenge("Insert a green at slot 1 of the yellow"),
-    path: "public/audio/shelf-assembly/shelf_02_challenge.mp3",
-  },
-  {
-    id: "S03",
-    text: challenge("Insert a pink piece at slot 2 of the yellow"),
-    path: "public/audio/shelf-assembly/shelf_03_challenge.mp3",
-  },
-  {
-    id: "S04",
-    text: challenge("Insert another 2 pink at slot 3 and 4 of the yellow"),
-    path: "public/audio/shelf-assembly/shelf_04_challenge.mp3",
-  },
-  {
-    id: "S05",
-    text: challenge("Insert a green piece at slot 5"),
-    path: "public/audio/shelf-assembly/shelf_05_challenge.mp3",
-  },
-  {
-    id: "S06",
-    text: challenge("Connect another yellow piece with the greens and pinks"),
-    path: "public/audio/shelf-assembly/shelf_06_challenge.mp3",
-  },
-  {
-    id: "S07",
-    text: challenge("Connect a blue piece with the 2 green"),
-    path: "public/audio/shelf-assembly/shelf_07_challenge.mp3",
-  },
-
-  // Challenge cues — boba tea plan.
-  {
-    id: "B01",
-    text: challenge("Add strawberry sugar syrup into a cup"),
-    path: "public/audio/boba/boba_01_challenge.mp3",
-  },
-  {
-    id: "B02",
-    text: challenge("Add boba"),
-    path: "public/audio/boba/boba_02_challenge.mp3",
-  },
-  {
-    id: "B03",
-    text: challenge("Add strawberry yogurt as the bottom layer"),
-    path: "public/audio/boba/boba_03_challenge.mp3",
-  },
-  {
-    id: "B04",
-    text: challenge("Pour matcha latte into the cup"),
-    path: "public/audio/boba/boba_04_challenge.mp3",
-  },
-  {
-    id: "B05",
-    text: challenge("Pour coconut milk into the cup"),
-    path: "public/audio/boba/boba_05_challenge.mp3",
-  },
-  {
-    id: "B06",
-    text: challenge("Add milk cream on the top"),
-    path: "public/audio/boba/boba_06_challenge.mp3",
-  },
-  {
-    id: "B07",
-    text: challenge("Put a lid on the cup"),
-    path: "public/audio/boba/boba_07_challenge.mp3",
-  },
+  // Challenge cues — one per correct step, built from CHALLENGE_SOURCES below
+  // so the prefix rotation can never drift from the app's.
+  ...CHALLENGE_SOURCES.flatMap(({ idPrefix, plan, steps }) =>
+    steps.map(([text, path], index) => ({
+      id: `${idPrefix}${String(index + 1).padStart(2, "0")}`,
+      text: challenge(text, CHALLENGE_OFFSETS[plan] + index),
+      path,
+    })),
+  ),
 ];
 
 function isMp3(bytes) {

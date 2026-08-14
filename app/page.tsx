@@ -66,7 +66,15 @@ type Plan = {
 };
 
 const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-const CHALLENGE_PREFIX = "I think it's appropriate to";
+// Challenge cues cycle through these so the AI does not repeat one phrasing all
+// session. They are deliberately matched for expressed confidence: varying how
+// certain the AI sounds would vary the thing the study measures.
+const CHALLENGE_PREFIXES = [
+  "I think it's appropriate to",
+  "I checked again, and it is good to",
+  "I would suggest you",
+  "My recommendation is still to",
+];
 
 const DISTRACTOR_INSERT_WINDOWS = [
   { label: "A", allowedAfterCorrectSteps: [1, 2, 3] },
@@ -84,7 +92,7 @@ const trainingCorrectSteps = [
 ];
 
 const trainingTasks = [
-  ...correctTasks(trainingCorrectSteps.slice(0, 3), "training", "training", {}, true),
+  ...correctTasks(trainingCorrectSteps.slice(0, 3), "training", "training", {}, 1),
   {
     name: "Put a long piece on the top",
     correctOptions: [],
@@ -106,7 +114,7 @@ const trainingTasks = [
     0: "/audio/training/training_put_square_slot3.wav",
     1: "/audio/training/training_put_square_slot4.wav",
     2: "/audio/training/training_put_long_piece_top.wav",
-  }, true),
+  }, 4),
 ] satisfies Task[];
 
 const sandwichCorrectSteps = [
@@ -194,7 +202,7 @@ const randomizedTaskConfigs = {
     distractors: ["A", "B", "C"],
   },
   shelf: {
-    correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, true),
+    correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, 0),
     distractorSteps: shelfDistractorSteps,
     recoverySteps: shelfDistractorRecoverySteps,
     recoveryAudioOverrides: {
@@ -207,7 +215,7 @@ const randomizedTaskConfigs = {
     distractors: ["A", "B", "C"],
   },
   boba: {
-    correct: correctTasks(bobaCorrectSteps, "boba", "boba", {}, true),
+    correct: correctTasks(bobaCorrectSteps, "boba", "boba", {}, 2),
     distractorSteps: bobaDistractorSteps,
     recoverySteps: bobaDistractorRecoverySteps,
     distractorAudioOverrides: {
@@ -243,19 +251,28 @@ const randomizedTaskConfigs = {
   }
 >;
 
-function toChallengeOption(option: InstructionOption): InstructionOption {
+function toChallengeOption(
+  option: InstructionOption,
+  prefixIndex: number,
+): InstructionOption {
   return {
-    text: `${CHALLENGE_PREFIX} ${option.text.charAt(0).toLowerCase()}${option.text.slice(1)}.`,
+    text: `${CHALLENGE_PREFIXES[prefixIndex % CHALLENGE_PREFIXES.length]} ${option.text.charAt(0).toLowerCase()}${option.text.slice(1)}.`,
     audioSrc: `${option.audioSrc.replace(/\.[^./]+$/, "")}_challenge.mp3`,
   };
 }
 
+// `challengePrefixOffset` both enables challenge audio and picks where this call
+// starts in CHALLENGE_PREFIXES. Offsets differ per plan so a participant running
+// several plans never hears the same prefix sequence twice. Leave it undefined
+// to keep a plan on replay-verbatim challenges.
+// Any change here must be mirrored in scripts/generate-tts.mjs, which speaks
+// these same sentences into the clips.
 function correctTasks(
   steps: string[],
   audioFolder: string,
   audioPrefix: string,
   audioOverrides: AudioOverrides = {},
-  withChallenge = false,
+  challengePrefixOffset?: number,
 ): Task[] {
   return steps.map((text, index) => {
     const option = {
@@ -268,7 +285,9 @@ function correctTasks(
     return {
       name: text,
       correctOptions: [option],
-      ...(withChallenge ? { challengeOptions: [toChallengeOption(option)] } : {}),
+      ...(challengePrefixOffset === undefined
+        ? {}
+        : { challengeOptions: [toChallengeOption(option, challengePrefixOffset + index)] }),
       mainKind: "correct" as const,
     };
   });
@@ -407,7 +426,7 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK B",
     title: "Shelf assembly plan",
     description: "Guide the 10-step shelf assembly with participant-stable distractor instructions.",
-    tasks: withBoundaryTasks(correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, true)),
+    tasks: withBoundaryTasks(correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, 0)),
   },
   {
     id: "boba",
@@ -415,7 +434,7 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK C",
     title: "Boba tea plan",
     description: "Guide the 10-step boba tea preparation with participant-stable distractor instructions.",
-    tasks: withBoundaryTasks(correctTasks(bobaCorrectSteps, "boba", "boba", {}, true)),
+    tasks: withBoundaryTasks(correctTasks(bobaCorrectSteps, "boba", "boba", {}, 2)),
   },
   {
     id: "table",

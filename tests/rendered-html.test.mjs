@@ -35,8 +35,8 @@ test("uses training plus 7-step study scripts with participant IDs", async () =>
   assert.match(page, /tableCorrectSteps = \[/);
   assert.match(page, /tasks: withBoundaryTasks\(trainingTasks\)/);
   assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
-  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, true\)/);
-  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, true\)/);
+  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, 0\)/);
+  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, 2\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
 });
 
@@ -70,7 +70,7 @@ test("inserts the misleading training top-piece step between steps 3 and 4", asy
   assert.match(page, /trainingTasks/);
   assert.match(
     page,
-    /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training", \{\}, true\)/,
+    /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training", \{\}, 1\)/,
   );
   assert.match(page, /name: "Put a long piece on the top"/);
   assert.match(page, /incorrectOptions: \[/);
@@ -95,7 +95,7 @@ test("inserts the misleading training top-piece step between steps 3 and 4", asy
   assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training"/);
   assert.match(
     page,
-    /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training", \{[^)]*\}, true\)/,
+    /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training", \{[^)]*\}, 4\)/,
   );
   assert.match(
     page,
@@ -342,21 +342,36 @@ test("derives challenge audio for training, shelf, and boba only", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
   assert.match(page, /challengeOptions\?: InstructionOption\[\]/);
-  assert.match(page, /const CHALLENGE_PREFIX = "I think it's appropriate to"/);
-  assert.match(page, /function toChallengeOption\(option: InstructionOption\)/);
+  assert.match(page, /function toChallengeOption\(\s*option: InstructionOption,\s*prefixIndex: number,\s*\)/);
   assert.match(
     page,
-    /\$\{CHALLENGE_PREFIX\} \$\{option\.text\.charAt\(0\)\.toLowerCase\(\)\}\$\{option\.text\.slice\(1\)\}\./,
+    /\$\{CHALLENGE_PREFIXES\[prefixIndex % CHALLENGE_PREFIXES\.length\]\} \$\{option\.text\.charAt\(0\)\.toLowerCase\(\)\}\$\{option\.text\.slice\(1\)\}\./,
   );
   assert.match(page, /replace\(\/\\\.\[\^\.\/\]\+\$\/, ""\)/);
   assert.match(page, /_challenge\.mp3/);
-  assert.match(page, /withChallenge = false/);
-  assert.match(page, /withChallenge \? \{ challengeOptions: \[toChallengeOption\(option\)\] \} : \{\}/);
-  assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training", \{\}, true\)/);
-  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, true\)/);
-  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, true\)/);
+  assert.match(page, /challengePrefixOffset\?: number/);
+  assert.match(
+    page,
+    /challengePrefixOffset === undefined\s*\? \{\}\s*: \{ challengeOptions: \[toChallengeOption\(option, challengePrefixOffset \+ index\)\] \}/,
+  );
+  assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training", \{\}, 1\)/);
+  assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training", \{[^)]*\}, 4\)/);
+  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, 0\)/);
+  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, 2\)/);
   assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
-  assert.doesNotMatch(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich", \{\}, true\)/);
-  assert.doesNotMatch(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly", \{\}, true\)/);
+  assert.doesNotMatch(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich", \{\},/);
+  assert.doesNotMatch(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly", \{\},/);
+});
+
+test("offers four confidence-matched challenge prefixes", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /const CHALLENGE_PREFIXES = \[/);
+  assert.match(page, /"I think it's appropriate to"/);
+  assert.match(page, /"I checked again, and it is good to"/);
+  assert.match(page, /"I would suggest you"/);
+  assert.match(page, /"My recommendation is still to"/);
+  // The single-prefix constant is retired; nothing may reference it.
+  assert.doesNotMatch(page, /CHALLENGE_PREFIX\b(?!ES)/);
 });
