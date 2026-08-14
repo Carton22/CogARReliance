@@ -95,7 +95,7 @@ test("inserts the misleading training top-piece step between steps 3 and 4", asy
   assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training"/);
   assert.match(
     page,
-    /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training", \{[\s\S]*?\}, true\)/,
+    /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training", \{[^)]*\}, true\)/,
   );
   assert.match(
     page,
