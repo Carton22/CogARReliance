@@ -165,7 +165,10 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /shelfDistractorSteps = \[/);
   assert.match(page, /"Insert a purple piece at slot 3 of the yellow"/);
   assert.match(page, /"Insert a pink piece at slot 5"/);
-  assert.match(page, /"Connect a black with the 2 green"/);
+  assert.match(page, /"Connect the black piece with the 2 green pieces"/);
+  assert.match(page, /"Connect another yellow piece with the greens and pinks"/);
+  assert.doesNotMatch(page, /"Connect a black with the 2 green"/);
+  assert.doesNotMatch(page, /"Connect another yellow with the green and pink"/);
   assert.match(page, /shelfDistractorRecoverySteps = \[/);
   assert.match(page, /"remove the purple piece at slot 3, because the size doesn't match"/);
   assert.match(page, /"remove the pink piece at slot 5, because the shape doesn't match"/);

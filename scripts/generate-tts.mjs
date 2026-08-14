@@ -82,6 +82,16 @@ const MANIFEST = [
     text: "Oh, please remove the lemon piece, because it's for delivery",
     path: "public/audio/boba-distractors/boba_remove_lemon.mp3",
   },
+  {
+    id: "C11",
+    text: "Connect another yellow piece with the greens and pinks",
+    path: "public/audio/shelf-assembly/shelf_06.mp3",
+  },
+  {
+    id: "C12",
+    text: "Connect the black piece with the 2 green pieces",
+    path: "public/audio/shelf-assembly-distractors/shelf_C.mp3",
+  },
 
   // Challenge cues — training plan.
   {
@@ -143,7 +153,7 @@ const MANIFEST = [
   },
   {
     id: "S06",
-    text: challenge("Connect another yellow with the green and pink"),
+    text: challenge("Connect another yellow piece with the greens and pinks"),
     path: "public/audio/shelf-assembly/shelf_06_challenge.mp3",
   },
   {

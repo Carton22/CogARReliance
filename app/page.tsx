@@ -125,7 +125,7 @@ const shelfCorrectSteps = [
   "Insert a pink piece at slot 2 of the yellow",
   "Insert another 2 pink at slot 3 and 4 of the yellow",
   "Insert a green piece at slot 5",
-  "Connect another yellow with the green and pink",
+  "Connect another yellow piece with the greens and pinks",
   "Connect a blue piece with the 2 green",
 ];
 
@@ -158,7 +158,7 @@ const sandwichDistractorSteps = [
 const shelfDistractorSteps = [
   "Insert a purple piece at slot 3 of the yellow",
   "Insert a pink piece at slot 5",
-  "Connect a black with the 2 green",
+  "Connect the black piece with the 2 green pieces",
 ];
 
 const shelfDistractorRecoverySteps = [
