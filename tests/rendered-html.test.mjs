@@ -57,6 +57,7 @@ test("adds logged challenge audio for numbered correct instruction rows", async 
     /playInstruction\([\s\S]*challengeOption,[\s\S]*"correct",[\s\S]*"challenge",[\s\S]*true,[\s\S]*"challenge",[\s\S]*false,?\s*\)/,
   );
   assert.match(page, /aria-label=\{`Play challenge audio for task \$\{taskNumber\}: \$\{challengeOption\.text\}`\}/);
+  assert.match(page, /title=\{`Play challenge instruction: \$\{challengeOption\.text\}`\}/);
   assert.match(page, /<small>Challenge<\/small>/);
   assert.match(css, /\.challenge-button\s*\{/);
   assert.match(css, /\.challenge-button\.is-playing\s*\{/);
@@ -92,6 +93,10 @@ test("inserts the misleading training top-piece step between steps 3 and 4", asy
     /2: "\/audio\/training\/training_put_long_piece_top\.wav"/,
   );
   assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training"/);
+  assert.match(
+    page,
+    /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training", \{[\s\S]*?\}, true\)/,
+  );
   assert.match(
     page,
     /tasks: withBoundaryTasks\(trainingTasks\)/,
@@ -174,6 +179,8 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /bobaDistractorRecoverySteps = \[/);
   assert.match(page, /"Use a spoon to add matcha powder"/);
   assert.match(page, /"Oh, please remove the lemon piece, because it's for delivery"/);
+  assert.doesNotMatch(page, /"Remove the lemon"/);
+  assert.doesNotMatch(page, /"Add a piece of lemon on the edge"/);
   assert.match(page, /recoveryOptions/);
   assert.match(page, /Recovery audio/);
   assert.match(page, /\$\{config\.prefix\}_\$\{distractor\}_recovery\.mp3/);
@@ -325,7 +332,11 @@ test("derives challenge audio for training, shelf, and boba only", async () => {
   assert.match(page, /challengeOptions\?: InstructionOption\[\]/);
   assert.match(page, /const CHALLENGE_PREFIX = "I think it's appropriate to"/);
   assert.match(page, /function toChallengeOption\(option: InstructionOption\)/);
-  assert.match(page, /replace\(\/\\\.\(mp3\|wav\)\$\/, ""\)/);
+  assert.match(
+    page,
+    /\$\{CHALLENGE_PREFIX\} \$\{option\.text\.charAt\(0\)\.toLowerCase\(\)\}\$\{option\.text\.slice\(1\)\}\./,
+  );
+  assert.match(page, /replace\(\/\\\.\[\^\.\/\]\+\$\/, ""\)/);
   assert.match(page, /_challenge\.mp3/);
   assert.match(page, /withChallenge = false/);
   assert.match(page, /withChallenge \? \{ challengeOptions: \[toChallengeOption\(option\)\] \} : \{\}/);

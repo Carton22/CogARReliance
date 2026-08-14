@@ -246,7 +246,7 @@ const randomizedTaskConfigs = {
 function toChallengeOption(option: InstructionOption): InstructionOption {
   return {
     text: `${CHALLENGE_PREFIX} ${option.text.charAt(0).toLowerCase()}${option.text.slice(1)}.`,
-    audioSrc: `${option.audioSrc.replace(/\.(mp3|wav)$/, "")}_challenge.mp3`,
+    audioSrc: `${option.audioSrc.replace(/\.[^./]+$/, "")}_challenge.mp3`,
   };
 }
 
@@ -1239,7 +1239,7 @@ export default function Home() {
                               )
                             }
                             aria-label={`Play challenge audio for task ${taskNumber}: ${challengeOption.text}`}
-                            title="Play challenge instruction"
+                            title={`Play challenge instruction: ${challengeOption.text}`}
                             data-testid={`${activePlan.id}-challenge-${taskNumber}`}
                           >
                             <span className="speaker-icon" aria-hidden="true">

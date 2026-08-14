@@ -242,6 +242,9 @@ async function main() {
 
   const onlyIndex = args.indexOf("--only");
   const only = onlyIndex === -1 ? null : args[onlyIndex + 1];
+  if (onlyIndex !== -1 && !only) {
+    throw new Error("--only requires a manifest id");
+  }
   const queue = only
     ? MANIFEST.filter((entry) => entry.id === only)
     : MANIFEST;
