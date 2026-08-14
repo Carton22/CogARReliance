@@ -1,0 +1,96 @@
+OpenAI TTS generation sheet - 2026-08-13
+Settings: gpt-4o-mini-tts | Nova | 1.00x | MP3
+Instructions: Speak in professional way for a presentation in academic paper and user study
+
+Each entry is a "#" line naming the file to save, followed by the exact phrase to paste.
+Paste only the phrase line. 30 clips total, in generation order.
+
+# C01 -> shelf_04.mp3
+Insert another 2 pink at slot 3 and 4 of the yellow
+
+# C02 -> shelf_A.mp3
+Insert a purple piece at slot 3 of the yellow
+
+# C03 -> shelf_remove_purple_slot3.mp3
+remove the purple piece at slot 3, because the size doesn't match
+
+# C04 -> shelf_remove_pink_slot5.mp3
+remove the pink piece at slot 5, because the shape doesn't match
+
+# C05 -> shelf_remove_black_piece.mp3
+Remove the black piece, because the size doesn't match
+
+# C06 -> boba_A.mp3
+add a little white sugar from the bottle on your left
+
+# C07 -> boba_A_recovery.mp3
+add a little white sugar from the bottle on your right
+
+# C08 -> boba_use_spoon_matcha.mp3
+Use a spoon to add matcha powder
+
+# C09 -> boba_C.mp3
+Add a piece of lemon on the edge of the cup
+
+# C10 -> boba_remove_lemon.mp3
+Oh, please remove the lemon piece, because it's for delivery
+
+# T01 -> training_01_challenge.mp3
+I think it's appropriate to put a long piece on the ground.
+
+# T02 -> training_02_challenge.mp3
+I think it's appropriate to put a square piece at slot 1.
+
+# T03 -> training_03_challenge.mp3
+I think it's appropriate to put a square piece at slot 2.
+
+# T04 -> training_put_square_slot3_challenge.mp3
+I think it's appropriate to put a square piece at slot 3.
+
+# T05 -> training_put_square_slot4_challenge.mp3
+I think it's appropriate to put a square piece at slot 4.
+
+# T06 -> training_put_long_piece_top_challenge.mp3
+I think it's appropriate to put a long piece on the top.
+
+# S01 -> shelf_01_challenge.mp3
+I think it's appropriate to classify the pieces based on color.
+
+# S02 -> shelf_02_challenge.mp3
+I think it's appropriate to insert a green at slot 1 of the yellow.
+
+# S03 -> shelf_03_challenge.mp3
+I think it's appropriate to insert a pink piece at slot 2 of the yellow.
+
+# S04 -> shelf_04_challenge.mp3
+I think it's appropriate to insert another 2 pink at slot 3 and 4 of the yellow.
+
+# S05 -> shelf_05_challenge.mp3
+I think it's appropriate to insert a green piece at slot 5.
+
+# S06 -> shelf_06_challenge.mp3
+I think it's appropriate to connect another yellow with the green and pink.
+
+# S07 -> shelf_07_challenge.mp3
+I think it's appropriate to connect a blue piece with the 2 green.
+
+# B01 -> boba_01_challenge.mp3
+I think it's appropriate to add strawberry sugar syrup into a cup.
+
+# B02 -> boba_02_challenge.mp3
+I think it's appropriate to add boba.
+
+# B03 -> boba_03_challenge.mp3
+I think it's appropriate to add the yogurt as bottom layer.
+
+# B04 -> boba_04_challenge.mp3
+I think it's appropriate to pour matcha latte.
+
+# B05 -> boba_05_challenge.mp3
+I think it's appropriate to pour coconut milk.
+
+# B06 -> boba_06_challenge.mp3
+I think it's appropriate to add milk cream on the top.
+
+# B07 -> boba_07_challenge.mp3
+I think it's appropriate to put the lid on the cup.
