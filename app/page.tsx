@@ -132,11 +132,11 @@ const shelfCorrectSteps = [
 const bobaCorrectSteps = [
   "Add strawberry sugar syrup into a cup",
   "Add boba",
-  "Add the yogurt as bottom layer",
-  "Pour matcha latte",
-  "Pour coconut milk",
+  "Add strawberry yogurt as the bottom layer",
+  "Pour matcha latte into the cup",
+  "Pour coconut milk into the cup",
   "Add milk cream on the top",
-  "Put the lid on the cup",
+  "Put a lid on the cup",
 ];
 
 const tableCorrectSteps = [
@@ -176,7 +176,7 @@ const bobaDistractorSteps = [
 const bobaDistractorRecoverySteps = [
   "add a little white sugar from the bottle on your right",
   "Use a spoon to add matcha powder",
-  "Oh, please remove the lemon piece, because it's for delivery",
+  "Oh, please remove the lemon piece, because the boba tea is for delivery",
 ];
 
 const tableDistractorSteps = [

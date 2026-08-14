@@ -181,7 +181,16 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Add a piece of lemon on the edge of the cup"/);
   assert.match(page, /bobaDistractorRecoverySteps = \[/);
   assert.match(page, /"Use a spoon to add matcha powder"/);
-  assert.match(page, /"Oh, please remove the lemon piece, because it's for delivery"/);
+  assert.match(page, /"Oh, please remove the lemon piece, because the boba tea is for delivery"/);
+  assert.doesNotMatch(page, /"Oh, please remove the lemon piece, because it's for delivery"/);
+  assert.match(page, /"Add strawberry yogurt as the bottom layer"/);
+  assert.match(page, /"Pour matcha latte into the cup"/);
+  assert.match(page, /"Pour coconut milk into the cup"/);
+  assert.match(page, /"Put a lid on the cup"/);
+  assert.doesNotMatch(page, /"Add the yogurt as bottom layer"/);
+  assert.doesNotMatch(page, /"Pour matcha latte",/);
+  assert.doesNotMatch(page, /"Pour coconut milk",/);
+  assert.doesNotMatch(page, /"Put the lid on the cup"/);
   assert.doesNotMatch(page, /"Remove the lemon"/);
   assert.doesNotMatch(page, /"Add a piece of lemon on the edge"/);
   assert.match(page, /recoveryOptions/);

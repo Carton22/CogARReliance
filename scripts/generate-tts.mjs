@@ -79,7 +79,7 @@ const MANIFEST = [
   },
   {
     id: "C10",
-    text: "Oh, please remove the lemon piece, because it's for delivery",
+    text: "Oh, please remove the lemon piece, because the boba tea is for delivery",
     path: "public/audio/boba-distractors/boba_remove_lemon.mp3",
   },
   {
@@ -91,6 +91,26 @@ const MANIFEST = [
     id: "C12",
     text: "Connect the black piece with the 2 green pieces",
     path: "public/audio/shelf-assembly-distractors/shelf_C.mp3",
+  },
+  {
+    id: "C13",
+    text: "Add strawberry yogurt as the bottom layer",
+    path: "public/audio/boba/boba_03.mp3",
+  },
+  {
+    id: "C14",
+    text: "Pour matcha latte into the cup",
+    path: "public/audio/boba/boba_04.mp3",
+  },
+  {
+    id: "C15",
+    text: "Pour coconut milk into the cup",
+    path: "public/audio/boba/boba_05.mp3",
+  },
+  {
+    id: "C16",
+    text: "Put a lid on the cup",
+    path: "public/audio/boba/boba_07.mp3",
   },
 
   // Challenge cues — training plan.
@@ -175,17 +195,17 @@ const MANIFEST = [
   },
   {
     id: "B03",
-    text: challenge("Add the yogurt as bottom layer"),
+    text: challenge("Add strawberry yogurt as the bottom layer"),
     path: "public/audio/boba/boba_03_challenge.mp3",
   },
   {
     id: "B04",
-    text: challenge("Pour matcha latte"),
+    text: challenge("Pour matcha latte into the cup"),
     path: "public/audio/boba/boba_04_challenge.mp3",
   },
   {
     id: "B05",
-    text: challenge("Pour coconut milk"),
+    text: challenge("Pour coconut milk into the cup"),
     path: "public/audio/boba/boba_05_challenge.mp3",
   },
   {
@@ -195,7 +215,7 @@ const MANIFEST = [
   },
   {
     id: "B07",
-    text: challenge("Put the lid on the cup"),
+    text: challenge("Put a lid on the cup"),
     path: "public/audio/boba/boba_07_challenge.mp3",
   },
 ];
