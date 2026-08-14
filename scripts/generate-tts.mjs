@@ -115,12 +115,12 @@ const MANIFEST = [
   },
   {
     id: "C06",
-    text: "add a little white sugar from the bottle on your left",
+    text: "grab the left bottle to add white sugar",
     path: "public/audio/boba-distractors/boba_A.mp3",
   },
   {
     id: "C07",
-    text: "add a little white sugar from the bottle on your right",
+    text: "grab the right bottle to add white sugar",
     path: "public/audio/boba-distractors/boba_A_recovery.mp3",
   },
   {

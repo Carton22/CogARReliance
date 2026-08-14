@@ -174,8 +174,10 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"remove the pink piece at slot 5, because the shape doesn't match"/);
   assert.match(page, /"Remove the black piece, because the size doesn't match"/);
   assert.match(page, /bobaDistractorSteps = \[/);
-  assert.match(page, /"add a little white sugar from the bottle on your left"/);
-  assert.match(page, /"add a little white sugar from the bottle on your right"/);
+  assert.match(page, /"grab the left bottle to add white sugar"/);
+  assert.match(page, /"grab the right bottle to add white sugar"/);
+  assert.doesNotMatch(page, /"add a little white sugar from the bottle on your left"/);
+  assert.doesNotMatch(page, /"add a little white sugar from the bottle on your right"/);
   assert.match(page, /"use a fork to add matcha powder"/);
   assert.doesNotMatch(page, /"Mix up the current cup"/);
   assert.match(page, /"Add a piece of lemon on the edge of the cup"/);
