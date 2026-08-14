@@ -47,6 +47,7 @@ type AudioOverrides = Record<number, string>;
 type Task = {
   name: string;
   correctOptions: InstructionOption[];
+  challengeOptions?: InstructionOption[];
   incorrectOptions?: InstructionOption[];
   recoveryOptions?: InstructionOption[];
   mainKind: CueKind;
@@ -65,6 +66,7 @@ type Plan = {
 };
 
 const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const CHALLENGE_PREFIX = "I think it's appropriate to";
 
 const DISTRACTOR_INSERT_WINDOWS = [
   { label: "A", allowedAfterCorrectSteps: [1, 2, 3] },
@@ -82,7 +84,7 @@ const trainingCorrectSteps = [
 ];
 
 const trainingTasks = [
-  ...correctTasks(trainingCorrectSteps.slice(0, 3), "training", "training"),
+  ...correctTasks(trainingCorrectSteps.slice(0, 3), "training", "training", {}, true),
   {
     name: "Put a long piece on the top",
     correctOptions: [],
@@ -104,7 +106,7 @@ const trainingTasks = [
     0: "/audio/training/training_put_square_slot3.wav",
     1: "/audio/training/training_put_square_slot4.wav",
     2: "/audio/training/training_put_long_piece_top.wav",
-  }),
+  }, true),
 ] satisfies Task[];
 
 const sandwichCorrectSteps = [
@@ -192,7 +194,7 @@ const randomizedTaskConfigs = {
     distractors: ["A", "B", "C"],
   },
   shelf: {
-    correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf"),
+    correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, true),
     distractorSteps: shelfDistractorSteps,
     recoverySteps: shelfDistractorRecoverySteps,
     recoveryAudioOverrides: {
@@ -205,7 +207,7 @@ const randomizedTaskConfigs = {
     distractors: ["A", "B", "C"],
   },
   boba: {
-    correct: correctTasks(bobaCorrectSteps, "boba", "boba"),
+    correct: correctTasks(bobaCorrectSteps, "boba", "boba", {}, true),
     distractorSteps: bobaDistractorSteps,
     recoverySteps: bobaDistractorRecoverySteps,
     distractorAudioOverrides: {
@@ -241,24 +243,35 @@ const randomizedTaskConfigs = {
   }
 >;
 
+function toChallengeOption(option: InstructionOption): InstructionOption {
+  return {
+    text: `${CHALLENGE_PREFIX} ${option.text.charAt(0).toLowerCase()}${option.text.slice(1)}.`,
+    audioSrc: `${option.audioSrc.replace(/\.(mp3|wav)$/, "")}_challenge.mp3`,
+  };
+}
+
 function correctTasks(
   steps: string[],
   audioFolder: string,
   audioPrefix: string,
   audioOverrides: AudioOverrides = {},
+  withChallenge = false,
 ): Task[] {
-  return steps.map((text, index) => ({
-    name: text,
-    correctOptions: [
-      {
-        text,
-        audioSrc:
-          audioOverrides[index] ??
-          `/audio/${audioFolder}/${audioPrefix}_${String(index + 1).padStart(2, "0")}.mp3`,
-      },
-    ],
-    mainKind: "correct",
-  }));
+  return steps.map((text, index) => {
+    const option = {
+      text,
+      audioSrc:
+        audioOverrides[index] ??
+        `/audio/${audioFolder}/${audioPrefix}_${String(index + 1).padStart(2, "0")}.mp3`,
+    };
+
+    return {
+      name: text,
+      correctOptions: [option],
+      ...(withChallenge ? { challengeOptions: [toChallengeOption(option)] } : {}),
+      mainKind: "correct" as const,
+    };
+  });
 }
 
 function withBoundaryTasks(tasks: Task[]): Task[] {
@@ -394,7 +407,7 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK B",
     title: "Shelf assembly plan",
     description: "Guide the 10-step shelf assembly with participant-stable distractor instructions.",
-    tasks: withBoundaryTasks(correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf")),
+    tasks: withBoundaryTasks(correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, true)),
   },
   {
     id: "boba",
@@ -402,7 +415,7 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK C",
     title: "Boba tea plan",
     description: "Guide the 10-step boba tea preparation with participant-stable distractor instructions.",
-    tasks: withBoundaryTasks(correctTasks(bobaCorrectSteps, "boba", "boba")),
+    tasks: withBoundaryTasks(correctTasks(bobaCorrectSteps, "boba", "boba", {}, true)),
   },
   {
     id: "table",
@@ -1051,7 +1064,8 @@ export default function Home() {
                 {activePlan.tasks.map((task, index) => {
                   const taskNumber = index + 1;
                   const state = activeState[taskNumber] ?? { audioPlays: 0 };
-                  const challengeOption = task.correctOptions[0];
+                  const challengeOption =
+                    task.challengeOptions?.[0] ?? task.correctOptions[0];
                   return (
                     <div
                       className={`matrix-row ${state.stepComplete ? "is-complete" : ""}`}

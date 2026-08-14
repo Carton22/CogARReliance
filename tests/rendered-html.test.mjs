@@ -35,8 +35,8 @@ test("uses training plus 7-step study scripts with participant IDs", async () =>
   assert.match(page, /tableCorrectSteps = \[/);
   assert.match(page, /tasks: withBoundaryTasks\(trainingTasks\)/);
   assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
-  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf"\)/);
-  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba"\)/);
+  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, true\)/);
+  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, true\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
 });
 
@@ -47,7 +47,10 @@ test("adds logged challenge audio for numbered correct instruction rows", async 
   ]);
 
   assert.match(page, /task\.mainKind === "correct" && !task\.decisionDisabled/);
-  assert.match(page, /const challengeOption = task\.correctOptions\[0\]/);
+  assert.match(
+    page,
+    /const challengeOption =\s*task\.challengeOptions\?\.\[0\] \?\? task\.correctOptions\[0\]/,
+  );
   assert.match(page, /circle-button challenge-button/);
   assert.match(
     page,
@@ -66,7 +69,7 @@ test("inserts the misleading training top-piece step between steps 3 and 4", asy
   assert.match(page, /trainingTasks/);
   assert.match(
     page,
-    /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training"\)/,
+    /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training", \{\}, true\)/,
   );
   assert.match(page, /name: "Put a long piece on the top"/);
   assert.match(page, /incorrectOptions: \[/);
@@ -314,4 +317,23 @@ test("supports real-time Google Sheets event sync", async () => {
   assert.doesNotMatch(script, /"log_id"/);
   assert.doesNotMatch(script, /"elapsed_seconds"/);
   assert.doesNotMatch(script, /"elapsed_label"/);
+});
+
+test("derives challenge audio for training, shelf, and boba only", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /challengeOptions\?: InstructionOption\[\]/);
+  assert.match(page, /const CHALLENGE_PREFIX = "I think it's appropriate to"/);
+  assert.match(page, /function toChallengeOption\(option: InstructionOption\)/);
+  assert.match(page, /replace\(\/\\\.\(mp3\|wav\)\$\/, ""\)/);
+  assert.match(page, /_challenge\.mp3/);
+  assert.match(page, /withChallenge = false/);
+  assert.match(page, /withChallenge \? \{ challengeOptions: \[toChallengeOption\(option\)\] \} : \{\}/);
+  assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training", \{\}, true\)/);
+  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, true\)/);
+  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, true\)/);
+  assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
+  assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
+  assert.doesNotMatch(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich", \{\}, true\)/);
+  assert.doesNotMatch(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly", \{\}, true\)/);
 });
