@@ -130,13 +130,13 @@ const MANIFEST = [
   },
   {
     id: "C09",
-    text: "Add a piece of lemon on the edge of the cup",
-    path: "public/audio/boba-distractors/boba_C.mp3",
+    text: "Insert a white straw",
+    path: "public/audio/boba-distractors/boba_insert_white_straw.wav",
   },
   {
     id: "C10",
-    text: "Oh, please remove the lemon piece, because the boba tea is for delivery",
-    path: "public/audio/boba-distractors/boba_remove_lemon.mp3",
+    text: "Oh, replace the straw with a bigger black straw for boba",
+    path: "public/audio/boba-distractors/boba_replace_black_straw.wav",
   },
   {
     id: "C11",
@@ -167,6 +167,86 @@ const MANIFEST = [
     id: "C16",
     text: "Put a lid on the cup",
     path: "public/audio/boba/boba_07.mp3",
+  },
+  {
+    id: "A01",
+    text: "Turn and insert the other side of the green",
+    path: "public/audio/assistive/shelf/turn_green_other_side.wav",
+  },
+  {
+    id: "A02",
+    text: "Nice, keep going",
+    path: "public/audio/assistive/shelf/nice_keep_going.wav",
+  },
+  {
+    id: "A03",
+    text: "Should connect between 2 yellow pieces",
+    path: "public/audio/assistive/shelf/connect_between_yellow_pieces.wav",
+  },
+  {
+    id: "A04",
+    text: "Keep adding more",
+    path: "public/audio/assistive/boba/keep_adding_more.wav",
+  },
+  {
+    id: "A05",
+    text: "Stop",
+    path: "public/audio/assistive/boba/stop.wav",
+  },
+  {
+    id: "A06",
+    text: "Add a bit more",
+    path: "public/audio/assistive/boba/add_a_bit_more.wav",
+  },
+  {
+    id: "A07",
+    text: "You can stop now",
+    path: "public/audio/assistive/boba/you_can_stop_now.wav",
+  },
+  {
+    id: "A08",
+    text: "You can add all of them",
+    path: "public/audio/assistive/boba/you_can_add_all.wav",
+  },
+  {
+    id: "A09",
+    text: "Add more",
+    path: "public/audio/assistive/boba/add_more.wav",
+  },
+  {
+    id: "A10",
+    text: "Stop adding",
+    path: "public/audio/assistive/boba/stop_adding.wav",
+  },
+  {
+    id: "A11",
+    text: "Keep pouring",
+    path: "public/audio/assistive/boba/keep_pouring.wav",
+  },
+  {
+    id: "A12",
+    text: "Stop now",
+    path: "public/audio/assistive/boba/stop_now.wav",
+  },
+  {
+    id: "A13",
+    text: "You can add more",
+    path: "public/audio/assistive/boba/you_can_add_more.wav",
+  },
+  {
+    id: "A14",
+    text: "Enough now",
+    path: "public/audio/assistive/boba/enough_now.wav",
+  },
+  {
+    id: "A15",
+    text: "Stop pouring",
+    path: "public/audio/assistive/boba/stop_pouring.wav",
+  },
+  {
+    id: "A16",
+    text: "Good now",
+    path: "public/audio/assistive/boba/good_now.wav",
   },
 
   // Challenge cues — one per correct step, built from CHALLENGE_SOURCES below

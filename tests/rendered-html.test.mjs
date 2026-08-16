@@ -35,8 +35,8 @@ test("uses training plus 7-step study scripts with participant IDs", async () =>
   assert.match(page, /tableCorrectSteps = \[/);
   assert.match(page, /tasks: withBoundaryTasks\(trainingTasks\)/);
   assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
-  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, 0\)/);
-  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, 2\)/);
+  assert.match(page, /correctTasks\(\s*shelfCorrectSteps,\s*"shelf-assembly",\s*"shelf",\s*\{\},\s*0,\s*shelfAssistiveByCorrectStep,\s*\)/);
+  assert.match(page, /correctTasks\(\s*bobaCorrectSteps,\s*"boba",\s*"boba",\s*\{\},\s*2,\s*bobaAssistiveByCorrectStep,\s*\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
 });
 
@@ -52,6 +52,9 @@ test("adds logged challenge audio for numbered correct instruction rows", async 
     /const challengeOption =\s*task\.challengeOptions\?\.\[0\] \?\? task\.correctOptions\[0\]/,
   );
   assert.match(page, /circle-button challenge-button/);
+  assert.match(page, /assistiveOptions\?: InstructionOption\[\]/);
+  assert.match(page, /cue-button cue-assistive/);
+  assert.match(page, /legend-assistive/);
   assert.match(
     page,
     /playInstruction\([\s\S]*challengeOption,[\s\S]*"correct",[\s\S]*"challenge",[\s\S]*true,[\s\S]*"challenge",[\s\S]*false,?\s*\)/,
@@ -180,10 +183,11 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.doesNotMatch(page, /"add a little white sugar from the bottle on your right"/);
   assert.match(page, /"use a fork to add matcha powder"/);
   assert.doesNotMatch(page, /"Mix up the current cup"/);
-  assert.match(page, /"Add a piece of lemon on the edge of the cup"/);
+  assert.match(page, /"Insert a white straw"/);
   assert.match(page, /bobaDistractorRecoverySteps = \[/);
   assert.match(page, /"Use a spoon to add matcha powder"/);
-  assert.match(page, /"Oh, please remove the lemon piece, because the boba tea is for delivery"/);
+  assert.match(page, /"Oh, replace the straw with a bigger black straw for boba"/);
+  assert.doesNotMatch(page, /"Oh, please remove the lemon piece, because the boba tea is for delivery"/);
   assert.doesNotMatch(page, /"Oh, please remove the lemon piece, because it's for delivery"/);
   assert.match(page, /"Add strawberry yogurt as the bottom layer"/);
   assert.match(page, /"Pour matcha latte into the cup"/);
@@ -195,6 +199,14 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.doesNotMatch(page, /"Put the lid on the cup"/);
   assert.doesNotMatch(page, /"Remove the lemon"/);
   assert.doesNotMatch(page, /"Add a piece of lemon on the edge"/);
+  assert.match(page, /bobaAssistiveByCorrectStep/);
+  assert.match(page, /bobaAssistiveByDistractorStep/);
+  assert.match(page, /shelfAssistiveByCorrectStep/);
+  assert.match(page, /shelfAssistiveByDistractorStep/);
+  assert.match(page, /"Keep adding more"/);
+  assert.match(page, /"You can add all of them"/);
+  assert.match(page, /"Stop pouring"/);
+  assert.match(page, /"Turn and insert the other side of the green"/);
   assert.match(page, /recoveryOptions/);
   assert.match(page, /Recovery audio/);
   assert.match(page, /\$\{config\.prefix\}_\$\{distractor\}_recovery\.mp3/);
@@ -243,8 +255,13 @@ test("maps requested shelf and boba cues to matching TTS audio", async () => {
   );
   assert.match(
     page,
-    /2: "\/audio\/boba-distractors\/boba_remove_lemon\.mp3"/,
+    /2: "\/audio\/boba-distractors\/boba_insert_white_straw\.wav"/,
   );
+  assert.match(
+    page,
+    /2: "\/audio\/boba-distractors\/boba_replace_black_straw\.wav"/,
+  );
+  assert.doesNotMatch(page, /boba_remove_lemon\.mp3/);
   assert.doesNotMatch(page, /shelf_return_black\.wav/);
   assert.doesNotMatch(page, /put_fork_back\.wav/);
 });
@@ -281,7 +298,24 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/boba-distractors/boba_grab_fork.wav",
     "../public/audio/boba-distractors/boba_A_recovery.mp3",
     "../public/audio/boba-distractors/boba_use_spoon_matcha.mp3",
-    "../public/audio/boba-distractors/boba_remove_lemon.mp3",
+    "../public/audio/boba-distractors/boba_insert_white_straw.wav",
+    "../public/audio/boba-distractors/boba_replace_black_straw.wav",
+    "../public/audio/assistive/shelf/turn_green_other_side.wav",
+    "../public/audio/assistive/shelf/nice_keep_going.wav",
+    "../public/audio/assistive/shelf/connect_between_yellow_pieces.wav",
+    "../public/audio/assistive/boba/keep_adding_more.wav",
+    "../public/audio/assistive/boba/stop.wav",
+    "../public/audio/assistive/boba/add_a_bit_more.wav",
+    "../public/audio/assistive/boba/you_can_stop_now.wav",
+    "../public/audio/assistive/boba/you_can_add_all.wav",
+    "../public/audio/assistive/boba/add_more.wav",
+    "../public/audio/assistive/boba/stop_adding.wav",
+    "../public/audio/assistive/boba/keep_pouring.wav",
+    "../public/audio/assistive/boba/stop_now.wav",
+    "../public/audio/assistive/boba/you_can_add_more.wav",
+    "../public/audio/assistive/boba/enough_now.wav",
+    "../public/audio/assistive/boba/stop_pouring.wav",
+    "../public/audio/assistive/boba/good_now.wav",
     "../public/audio/table-assembly-distractors/table_assembly_A.mp3",
     "../public/audio/table-assembly-distractors/table_assembly_B.mp3",
     "../public/audio/table-assembly-distractors/table_assembly_C.mp3",
@@ -358,8 +392,8 @@ test("derives challenge audio for training, shelf, and boba only", async () => {
   );
   assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(0, 3\), "training", "training", \{\}, 1\)/);
   assert.match(page, /correctTasks\(trainingCorrectSteps\.slice\(3\), "training", "training", \{[^)]*\}, 4\)/);
-  assert.match(page, /correctTasks\(shelfCorrectSteps, "shelf-assembly", "shelf", \{\}, 0\)/);
-  assert.match(page, /correctTasks\(bobaCorrectSteps, "boba", "boba", \{\}, 2\)/);
+  assert.match(page, /correctTasks\(\s*shelfCorrectSteps,\s*"shelf-assembly",\s*"shelf",\s*\{\},\s*0,\s*shelfAssistiveByCorrectStep,\s*\)/);
+  assert.match(page, /correctTasks\(\s*bobaCorrectSteps,\s*"boba",\s*"boba",\s*\{\},\s*2,\s*bobaAssistiveByCorrectStep,\s*\)/);
   assert.match(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich"\)/);
   assert.match(page, /correctTasks\(tableCorrectSteps, "table-assembly", "table_assembly"\)/);
   assert.doesNotMatch(page, /correctTasks\(sandwichCorrectSteps, "sandwich", "sandwich", \{\},/);

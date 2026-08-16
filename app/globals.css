@@ -622,6 +622,10 @@ h2 {
   background: var(--coral);
 }
 
+.legend-assistive::before {
+  background: #8d96a3;
+}
+
 .matrix-row {
   min-height: 110px;
   border-bottom: 1px solid var(--line);
@@ -745,6 +749,11 @@ h2 {
   box-shadow: 0 5px 12px rgba(240, 100, 73, 0.18);
 }
 
+.cue-assistive {
+  background: #8d96a3;
+  box-shadow: 0 5px 12px rgba(99, 110, 124, 0.16);
+}
+
 .cue-button.is-playing {
   box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.13);
   animation: cue-playing 1.1s infinite;
@@ -752,6 +761,10 @@ h2 {
 
 .cue-incorrect.is-playing {
   box-shadow: 0 0 0 5px rgba(240, 100, 73, 0.13);
+}
+
+.cue-assistive.is-playing {
+  box-shadow: 0 0 0 5px rgba(99, 110, 124, 0.13);
 }
 
 .action-cell {

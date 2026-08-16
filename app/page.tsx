@@ -48,6 +48,7 @@ type Task = {
   name: string;
   correctOptions: InstructionOption[];
   challengeOptions?: InstructionOption[];
+  assistiveOptions?: InstructionOption[];
   incorrectOptions?: InstructionOption[];
   recoveryOptions?: InstructionOption[];
   mainKind: CueKind;
@@ -178,14 +179,132 @@ const shelfDistractorRecoverySteps = [
 const bobaDistractorSteps = [
   "grab the left bottle to add white sugar",
   "use a fork to add matcha powder",
-  "Add a piece of lemon on the edge of the cup",
+  "Insert a white straw",
 ];
 
 const bobaDistractorRecoverySteps = [
   "grab the right bottle to add white sugar",
   "Use a spoon to add matcha powder",
-  "Oh, please remove the lemon piece, because the boba tea is for delivery",
+  "Oh, replace the straw with a bigger black straw for boba",
 ];
+
+const shelfAssistiveByCorrectStep: Record<number, InstructionOption[]> = {
+  1: [
+    {
+      text: "Turn and insert the other side of the green",
+      audioSrc: "/audio/assistive/shelf/turn_green_other_side.wav",
+    },
+  ],
+  4: [
+    {
+      text: "Turn and insert the other side of the green",
+      audioSrc: "/audio/assistive/shelf/turn_green_other_side.wav",
+    },
+  ],
+  5: [
+    {
+      text: "Nice, keep going",
+      audioSrc: "/audio/assistive/shelf/nice_keep_going.wav",
+    },
+  ],
+  6: [
+    {
+      text: "Should connect between 2 yellow pieces",
+      audioSrc: "/audio/assistive/shelf/connect_between_yellow_pieces.wav",
+    },
+  ],
+};
+
+const shelfAssistiveByDistractorStep: Record<number, InstructionOption[]> = {
+  2: [
+    {
+      text: "Should connect between 2 yellow pieces",
+      audioSrc: "/audio/assistive/shelf/connect_between_yellow_pieces.wav",
+    },
+  ],
+};
+
+const bobaAssistiveByCorrectStep: Record<number, InstructionOption[]> = {
+  0: [
+    {
+      text: "Keep adding more",
+      audioSrc: "/audio/assistive/boba/keep_adding_more.wav",
+    },
+    {
+      text: "Stop",
+      audioSrc: "/audio/assistive/boba/stop.wav",
+    },
+  ],
+  1: [
+    {
+      text: "You can add all of them",
+      audioSrc: "/audio/assistive/boba/you_can_add_all.wav",
+    },
+  ],
+  2: [
+    {
+      text: "Add more",
+      audioSrc: "/audio/assistive/boba/add_more.wav",
+    },
+    {
+      text: "Stop adding",
+      audioSrc: "/audio/assistive/boba/stop_adding.wav",
+    },
+  ],
+  3: [
+    {
+      text: "Keep pouring",
+      audioSrc: "/audio/assistive/boba/keep_pouring.wav",
+    },
+    {
+      text: "Stop now",
+      audioSrc: "/audio/assistive/boba/stop_now.wav",
+    },
+  ],
+  4: [
+    {
+      text: "Keep pouring",
+      audioSrc: "/audio/assistive/boba/keep_pouring.wav",
+    },
+    {
+      text: "Stop pouring",
+      audioSrc: "/audio/assistive/boba/stop_pouring.wav",
+    },
+  ],
+  5: [
+    {
+      text: "You can add more",
+      audioSrc: "/audio/assistive/boba/you_can_add_more.wav",
+    },
+    {
+      text: "Good now",
+      audioSrc: "/audio/assistive/boba/good_now.wav",
+    },
+  ],
+};
+
+const bobaAssistiveByDistractorStep: Record<number, InstructionOption[]> = {
+  0: [
+    {
+      text: "Add a bit more",
+      audioSrc: "/audio/assistive/boba/add_a_bit_more.wav",
+    },
+    {
+      text: "You can stop now",
+      audioSrc: "/audio/assistive/boba/you_can_stop_now.wav",
+    },
+  ],
+  1: [
+    {
+      text: "You can add more",
+      audioSrc: "/audio/assistive/boba/you_can_add_more.wav",
+    },
+    {
+      text: "Enough now",
+      audioSrc: "/audio/assistive/boba/enough_now.wav",
+    },
+  ],
+};
 
 const tableDistractorSteps = [
   "Take a cutting knife",
@@ -202,9 +321,17 @@ const randomizedTaskConfigs = {
     distractors: ["A", "B", "C"],
   },
   shelf: {
-    correct: correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, 0),
+    correct: correctTasks(
+      shelfCorrectSteps,
+      "shelf-assembly",
+      "shelf",
+      {},
+      0,
+      shelfAssistiveByCorrectStep,
+    ),
     distractorSteps: shelfDistractorSteps,
     recoverySteps: shelfDistractorRecoverySteps,
+    assistiveSteps: shelfAssistiveByDistractorStep,
     recoveryAudioOverrides: {
       0: "/audio/shelf-assembly-distractors/shelf_remove_purple_slot3.mp3",
       1: "/audio/shelf-assembly-distractors/shelf_remove_pink_slot5.mp3",
@@ -215,16 +342,25 @@ const randomizedTaskConfigs = {
     distractors: ["A", "B", "C"],
   },
   boba: {
-    correct: correctTasks(bobaCorrectSteps, "boba", "boba", {}, 2),
+    correct: correctTasks(
+      bobaCorrectSteps,
+      "boba",
+      "boba",
+      {},
+      2,
+      bobaAssistiveByCorrectStep,
+    ),
     distractorSteps: bobaDistractorSteps,
     recoverySteps: bobaDistractorRecoverySteps,
+    assistiveSteps: bobaAssistiveByDistractorStep,
     distractorAudioOverrides: {
       1: "/audio/boba-distractors/boba_grab_fork.wav",
+      2: "/audio/boba-distractors/boba_insert_white_straw.wav",
     },
     recoveryAudioOverrides: {
       0: "/audio/boba-distractors/boba_A_recovery.mp3",
       1: "/audio/boba-distractors/boba_use_spoon_matcha.mp3",
-      2: "/audio/boba-distractors/boba_remove_lemon.mp3",
+      2: "/audio/boba-distractors/boba_replace_black_straw.wav",
     },
     folder: "boba-distractors",
     prefix: "boba",
@@ -243,6 +379,7 @@ const randomizedTaskConfigs = {
     correct: Task[];
     distractorSteps: string[];
     recoverySteps?: string[];
+    assistiveSteps?: Record<number, InstructionOption[]>;
     distractorAudioOverrides?: Record<number, string>;
     recoveryAudioOverrides?: Record<number, string>;
     folder: string;
@@ -273,6 +410,7 @@ function correctTasks(
   audioPrefix: string,
   audioOverrides: AudioOverrides = {},
   challengePrefixOffset?: number,
+  assistiveOverrides: Record<number, InstructionOption[]> = {},
 ): Task[] {
   return steps.map((text, index) => {
     const option = {
@@ -288,6 +426,9 @@ function correctTasks(
       ...(challengePrefixOffset === undefined
         ? {}
         : { challengeOptions: [toChallengeOption(option, challengePrefixOffset + index)] }),
+      ...(assistiveOverrides[index]
+        ? { assistiveOptions: assistiveOverrides[index] }
+        : {}),
       mainKind: "correct" as const,
     };
   });
@@ -372,6 +513,9 @@ function randomizedStudyTasks(
                 `/audio/${config.folder}/${config.prefix}_${distractor}_recovery.mp3`,
             }]
           : undefined,
+        ...(config.assistiveSteps?.[index]
+          ? { assistiveOptions: config.assistiveSteps[index] }
+          : {}),
         mainKind: "incorrect" as const,
       },
     })),
@@ -426,7 +570,16 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK B",
     title: "Shelf assembly plan",
     description: "Guide the 10-step shelf assembly with participant-stable distractor instructions.",
-    tasks: withBoundaryTasks(correctTasks(shelfCorrectSteps, "shelf-assembly", "shelf", {}, 0)),
+    tasks: withBoundaryTasks(
+      correctTasks(
+        shelfCorrectSteps,
+        "shelf-assembly",
+        "shelf",
+        {},
+        0,
+        shelfAssistiveByCorrectStep,
+      ),
+    ),
   },
   {
     id: "boba",
@@ -434,7 +587,16 @@ const plans: Plan[] = [
     eyebrow: "WIZARD OF OZ · TASK C",
     title: "Boba tea plan",
     description: "Guide the 10-step boba tea preparation with participant-stable distractor instructions.",
-    tasks: withBoundaryTasks(correctTasks(bobaCorrectSteps, "boba", "boba", {}, 2)),
+    tasks: withBoundaryTasks(
+      correctTasks(
+        bobaCorrectSteps,
+        "boba",
+        "boba",
+        {},
+        2,
+        bobaAssistiveByCorrectStep,
+      ),
+    ),
   },
   {
     id: "table",
@@ -1071,6 +1233,7 @@ export default function Home() {
                       <span className="legend-correct">Correct</span>
                       <span className="legend-incorrect">Incorrect</span>
                       <span className="legend-recovery">Recovery</span>
+                      <span className="legend-assistive">Assistive</span>
                     </span>
                   </div>
                   <div role="columnheader">AI audio</div>
@@ -1187,6 +1350,38 @@ export default function Home() {
                                   } for task ${taskNumber}: ${option.text}`}
                                   title="Preview only — no timestamp or event log"
                                   data-testid={`${activePlan.id}-recovery-option-${taskNumber}-${optionIndex}`}
+                                  key={option.audioSrc}
+                                >
+                                  <span aria-hidden="true">▶</span>
+                                  {option.text}
+                                </button>
+                              ),
+                            )}
+                            {task.assistiveOptions?.map(
+                              (option, optionIndex) => (
+                                <button
+                                  type="button"
+                                  className={`cue-button cue-assistive ${
+                                    playingCue ===
+                                    `${activePlan.id}-${taskNumber}-correct-assistive-${optionIndex}`
+                                      ? "is-playing"
+                                      : ""
+                                  }`}
+                                  onClick={() =>
+                                    playInstruction(
+                                      activePlan.id,
+                                      taskNumber,
+                                      option,
+                                      "correct",
+                                      `assistive-${optionIndex}`,
+                                      false,
+                                    )
+                                  }
+                                  aria-label={`Play unlogged assistive instruction ${
+                                    optionIndex + 1
+                                  } for task ${taskNumber}: ${option.text}`}
+                                  title="Assistive preview only — no timestamp or event log"
+                                  data-testid={`${activePlan.id}-assistive-option-${taskNumber}-${optionIndex}`}
                                   key={option.audioSrc}
                                 >
                                   <span aria-hidden="true">▶</span>
