@@ -124,6 +124,10 @@ test("adds logged task boundary rows without accept or reject decisions", async 
   assert.match(page, /sequenceNumber: index \+ 1/);
   assert.match(page, /name: "Task begin"/);
   assert.match(page, /audioSrc: "\/audio\/session\/task_begin\.mp3"/);
+  assert.match(page, /text: "Yes"/);
+  assert.match(page, /audioSrc: "\/audio\/assistive\/task-begin\/yes\.wav"/);
+  assert.match(page, /text: "No"/);
+  assert.match(page, /audioSrc: "\/audio\/assistive\/task-begin\/no\.wav"/);
   assert.match(page, /actionLabel: "start"/);
   assert.match(page, /name: "Task complete"/);
   assert.match(page, /audioSrc: "\/audio\/session\/task_complete\.mp3"/);
@@ -172,7 +176,8 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Connect the black piece with side B of 2 green pieces"/);
   assert.doesNotMatch(page, /"Connect the black piece with the 2 green pieces"/);
   assert.doesNotMatch(page, /"Connect a blue piece with the 2 green"/);
-  assert.match(page, /"Connect another yellow piece with the greens and pinks"/);
+  assert.match(page, /"Connect No\.2 yellow piece with the greens and pinks"/);
+  assert.doesNotMatch(page, /"Connect another yellow piece with the greens and pinks"/);
   assert.doesNotMatch(page, /"Connect a black with the 2 green"/);
   assert.doesNotMatch(page, /"Connect another yellow with the green and pink"/);
   assert.match(page, /shelfDistractorRecoverySteps = \[/);
@@ -322,6 +327,8 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/assistive/shelf/turn_green_other_side.wav",
     "../public/audio/assistive/shelf/nice_keep_going.wav",
     "../public/audio/assistive/shelf/connect_between_yellow_pieces.wav",
+    "../public/audio/assistive/task-begin/yes.wav",
+    "../public/audio/assistive/task-begin/no.wav",
     "../public/audio/assistive/boba/keep_adding_more.wav",
     "../public/audio/assistive/boba/stop.wav",
     "../public/audio/assistive/boba/add_a_bit_more.wav",

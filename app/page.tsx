@@ -135,7 +135,7 @@ const shelfCorrectSteps = [
   "Insert a pink piece at slot 2 of the yellow",
   "Insert another 2 pink at slot 3 and 4 of the yellow",
   "Insert side A of a green into slot 5 of the yellow",
-  "Connect another yellow piece with the greens and pinks",
+  "Connect No.2 yellow piece with the greens and pinks",
   "Connect the black piece with side B of 2 green pieces",
 ];
 
@@ -457,6 +457,16 @@ function withBoundaryTasks(tasks: Task[]): Task[] {
         {
           text: "Task begin",
           audioSrc: "/audio/session/task_begin.mp3",
+        },
+      ],
+      assistiveOptions: [
+        {
+          text: "Yes",
+          audioSrc: "/audio/assistive/task-begin/yes.wav",
+        },
+        {
+          text: "No",
+          audioSrc: "/audio/assistive/task-begin/no.wav",
         },
       ],
       mainKind: "correct",
