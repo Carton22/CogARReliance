@@ -63,10 +63,10 @@ const CHALLENGE_SOURCES = [
     plan: "shelf",
     steps: [
       ["Classify the pieces based on color", "public/audio/shelf-assembly/shelf_01_challenge.mp3"],
-      ["Insert a green at slot 1 of the yellow", "public/audio/shelf-assembly/shelf_02_challenge.mp3"],
+      ["Insert side A of a green into slot 1 of the yellow", "public/audio/shelf-assembly/shelf_02_challenge.mp3"],
       ["Insert a pink piece at slot 2 of the yellow", "public/audio/shelf-assembly/shelf_03_challenge.mp3"],
       ["Insert another 2 pink at slot 3 and 4 of the yellow", "public/audio/shelf-assembly/shelf_04_challenge.mp3"],
-      ["Insert a green piece at slot 5", "public/audio/shelf-assembly/shelf_05_challenge.mp3"],
+      ["Insert side A of a green into slot 5 of the yellow", "public/audio/shelf-assembly/shelf_05_challenge.mp3"],
       ["Connect another yellow piece with the greens and pinks", "public/audio/shelf-assembly/shelf_06_challenge.mp3"],
       ["Connect the black piece with side B of 2 green pieces", "public/audio/shelf-assembly/shelf_07_challenge.mp3"],
     ],
@@ -154,6 +154,16 @@ const MANIFEST = [
     path: "public/audio/shelf-assembly/shelf_07.mp3",
   },
   {
+    id: "C18",
+    text: "Insert side A of a green into slot 1 of the yellow",
+    path: "public/audio/shelf-assembly/shelf_02.mp3",
+  },
+  {
+    id: "C19",
+    text: "Insert side A of a green into slot 5 of the yellow",
+    path: "public/audio/shelf-assembly/shelf_05.mp3",
+  },
+  {
     id: "C13",
     text: "Add strawberry yogurt as the bottom layer",
     path: "public/audio/boba/boba_03.mp3",
@@ -175,8 +185,13 @@ const MANIFEST = [
   },
   {
     id: "A01",
-    text: "Turn and insert the other side of the green",
+    text: "Turn and insert the other side A of the green",
     path: "public/audio/assistive/shelf/turn_green_other_side.wav",
+  },
+  {
+    id: "A17",
+    text: "Just connect with No.1 Yellow piece",
+    path: "public/audio/assistive/shelf/connect_no1_yellow_piece.wav",
   },
   {
     id: "A02",

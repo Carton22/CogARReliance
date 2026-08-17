@@ -210,7 +210,14 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Keep adding more"/);
   assert.match(page, /"You can add all of them"/);
   assert.match(page, /"Stop pouring"/);
-  assert.match(page, /"Turn and insert the other side of the green"/);
+  assert.match(page, /"Insert side A of a green into slot 1 of the yellow"/);
+  assert.match(page, /"Insert side A of a green into slot 5 of the yellow"/);
+  assert.doesNotMatch(page, /"Insert a green at slot 1 of the yellow"/);
+  assert.doesNotMatch(page, /"Insert a green piece at slot 5"/);
+  assert.match(page, /"Just connect with No\.1 Yellow piece"/);
+  assert.match(page, /connect_no1_yellow_piece\.wav/);
+  assert.match(page, /"Turn and insert the other side A of the green"/);
+  assert.doesNotMatch(page, /"Turn and insert the other side of the green"/);
   assert.match(page, /"should connect with side B of the green pieces"/);
   assert.doesNotMatch(page, /"Should connect between 2 yellow pieces"/);
   assert.match(page, /recoveryOptions/);
@@ -311,6 +318,7 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/boba-distractors/boba_use_spoon_matcha.mp3",
     "../public/audio/boba-distractors/boba_insert_white_straw.wav",
     "../public/audio/boba-distractors/boba_replace_black_straw.wav",
+    "../public/audio/assistive/shelf/connect_no1_yellow_piece.wav",
     "../public/audio/assistive/shelf/turn_green_other_side.wav",
     "../public/audio/assistive/shelf/nice_keep_going.wav",
     "../public/audio/assistive/shelf/connect_between_yellow_pieces.wav",
