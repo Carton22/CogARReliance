@@ -82,6 +82,7 @@ const DISTRACTOR_INSERT_WINDOWS = [
   { label: "B", allowedAfterCorrectSteps: [3, 4, 5] },
   { label: "C", allowedAfterCorrectSteps: [5, 6, 7] },
 ];
+const PARTICIPANT_COUNTERBALANCE_COUNT = 36;
 
 const trainingCorrectSteps = [
   "Put a long piece on the ground",
@@ -489,12 +490,13 @@ function randomizedStudyTasks(
   participantId: number,
 ) {
   const config = randomizedTaskConfigs[planId];
-  const random = seededRandom(`${planId}-${participantId}`);
   const distractorBuckets = buildDistractorBuckets(
     config.distractors.map((distractor, index) => ({
-      insertAfterCorrectStep: randomChoice(
+      insertAfterCorrectStep: counterbalancedChoice(
         DISTRACTOR_INSERT_WINDOWS[index].allowedAfterCorrectSteps,
-        random,
+        planId,
+        index,
+        participantId,
       ),
       task: {
         name: config.distractorSteps[index],
@@ -519,7 +521,6 @@ function randomizedStudyTasks(
         mainKind: "incorrect" as const,
       },
     })),
-    random,
   );
 
   return withBoundaryTasks(
@@ -530,8 +531,48 @@ function randomizedStudyTasks(
   );
 }
 
-function randomChoice<T>(values: T[], random: () => number) {
-  return values[Math.floor(random() * values.length)];
+const counterbalanceOrderCache = new Map<string, number[]>();
+
+function counterbalancedChoice<T>(
+  values: T[],
+  planId: "sandwich" | "shelf" | "boba" | "table",
+  distractorIndex: number,
+  participantId: number,
+) {
+  const participantIndex = normalizedParticipantIndex(participantId);
+  const order = counterbalancedOrder(`${planId}-${distractorIndex}`, values.length);
+  return values[order[participantIndex]];
+}
+
+function normalizedParticipantIndex(participantId: number) {
+  const integerParticipantId = Number.isFinite(participantId)
+    ? Math.trunc(participantId)
+    : 1;
+  return (
+    ((integerParticipantId - 1) % PARTICIPANT_COUNTERBALANCE_COUNT) +
+    PARTICIPANT_COUNTERBALANCE_COUNT
+  ) % PARTICIPANT_COUNTERBALANCE_COUNT;
+}
+
+function counterbalancedOrder(seedText: string, bucketCount: number) {
+  const cacheKey = `${seedText}-${bucketCount}`;
+  const cached = counterbalanceOrderCache.get(cacheKey);
+  if (cached) return cached;
+
+  const order = Array.from(
+    { length: PARTICIPANT_COUNTERBALANCE_COUNT },
+    (_, index) => index % bucketCount,
+  );
+  shuffleInPlace(order, seededRandom(`counterbalance-${seedText}`));
+  counterbalanceOrderCache.set(cacheKey, order);
+  return order;
+}
+
+function shuffleInPlace<T>(values: T[], random: () => number) {
+  for (let index = values.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [values[index], values[swapIndex]] = [values[swapIndex], values[index]];
+  }
 }
 
 function buildDistractorBuckets(
