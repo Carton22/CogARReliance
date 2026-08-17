@@ -169,7 +169,9 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Insert a purple piece at slot 3 of the yellow"/);
   assert.match(page, /"Insert a brown piece at slot 5"/);
   assert.doesNotMatch(page, /"Insert a pink piece at slot 5"/);
-  assert.match(page, /"Connect the black piece with the 2 green pieces"/);
+  assert.match(page, /"Connect the black piece with side B of 2 green pieces"/);
+  assert.doesNotMatch(page, /"Connect the black piece with the 2 green pieces"/);
+  assert.doesNotMatch(page, /"Connect a blue piece with the 2 green"/);
   assert.match(page, /"Connect another yellow piece with the greens and pinks"/);
   assert.doesNotMatch(page, /"Connect a black with the 2 green"/);
   assert.doesNotMatch(page, /"Connect another yellow with the green and pink"/);
@@ -209,6 +211,8 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"You can add all of them"/);
   assert.match(page, /"Stop pouring"/);
   assert.match(page, /"Turn and insert the other side of the green"/);
+  assert.match(page, /"should connect with side B of the green pieces"/);
+  assert.doesNotMatch(page, /"Should connect between 2 yellow pieces"/);
   assert.match(page, /recoveryOptions/);
   assert.match(page, /Recovery audio/);
   assert.match(page, /\$\{config\.prefix\}_\$\{distractor\}_recovery\.mp3/);

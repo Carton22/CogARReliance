@@ -136,7 +136,7 @@ const shelfCorrectSteps = [
   "Insert another 2 pink at slot 3 and 4 of the yellow",
   "Insert a green piece at slot 5",
   "Connect another yellow piece with the greens and pinks",
-  "Connect a blue piece with the 2 green",
+  "Connect the black piece with side B of 2 green pieces",
 ];
 
 const bobaCorrectSteps = [
@@ -168,7 +168,7 @@ const sandwichDistractorSteps = [
 const shelfDistractorSteps = [
   "Insert a purple piece at slot 3 of the yellow",
   "Insert a brown piece at slot 5",
-  "Connect the black piece with the 2 green pieces",
+  "Connect the black piece with side B of 2 green pieces",
 ];
 
 const shelfDistractorRecoverySteps = [
@@ -210,7 +210,7 @@ const shelfAssistiveByCorrectStep: Record<number, InstructionOption[]> = {
   ],
   6: [
     {
-      text: "Should connect between 2 yellow pieces",
+      text: "should connect with side B of the green pieces",
       audioSrc: "/audio/assistive/shelf/connect_between_yellow_pieces.wav",
     },
   ],
@@ -219,7 +219,7 @@ const shelfAssistiveByCorrectStep: Record<number, InstructionOption[]> = {
 const shelfAssistiveByDistractorStep: Record<number, InstructionOption[]> = {
   2: [
     {
-      text: "Should connect between 2 yellow pieces",
+      text: "should connect with side B of the green pieces",
       audioSrc: "/audio/assistive/shelf/connect_between_yellow_pieces.wav",
     },
   ],
