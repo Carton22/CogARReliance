@@ -136,7 +136,7 @@ const shelfCorrectSteps = [
   "Insert another 2 pink at slot 3 and 4 of the yellow",
   "Insert side A of a green into slot 5 of the yellow",
   "Connect No.2 yellow piece with the greens and pinks",
-  "Connect the black piece with side B of 2 green pieces",
+  "Connect the blue piece with side B of 2 green pieces",
 ];
 
 const bobaCorrectSteps = [
@@ -166,7 +166,7 @@ const sandwichDistractorSteps = [
 ];
 
 const shelfDistractorSteps = [
-  "Insert a purple piece at slot 3 of the yellow",
+  "Insert side A of a purple piece into slot 3 of the yellow",
   "Insert a brown piece at slot 5",
   "Connect the black piece with side B of 2 green pieces",
 ];

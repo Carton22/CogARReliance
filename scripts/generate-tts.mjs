@@ -68,7 +68,7 @@ const CHALLENGE_SOURCES = [
       ["Insert another 2 pink at slot 3 and 4 of the yellow", "public/audio/shelf-assembly/shelf_04_challenge.mp3"],
       ["Insert side A of a green into slot 5 of the yellow", "public/audio/shelf-assembly/shelf_05_challenge.mp3"],
       ["Connect No.2 yellow piece with the greens and pinks", "public/audio/shelf-assembly/shelf_06_challenge.mp3"],
-      ["Connect the black piece with side B of 2 green pieces", "public/audio/shelf-assembly/shelf_07_challenge.mp3"],
+      ["Connect the blue piece with side B of 2 green pieces", "public/audio/shelf-assembly/shelf_07_challenge.mp3"],
     ],
   },
   {
@@ -95,7 +95,7 @@ const MANIFEST = [
   },
   {
     id: "C02",
-    text: "Insert a purple piece at slot 3 of the yellow",
+    text: "Insert side A of a purple piece into slot 3 of the yellow",
     path: "public/audio/shelf-assembly-distractors/shelf_A.mp3",
   },
   {
@@ -150,7 +150,7 @@ const MANIFEST = [
   },
   {
     id: "C17",
-    text: "Connect the black piece with side B of 2 green pieces",
+    text: "Connect the blue piece with side B of 2 green pieces",
     path: "public/audio/shelf-assembly/shelf_07.mp3",
   },
   {
