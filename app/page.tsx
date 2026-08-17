@@ -167,13 +167,13 @@ const sandwichDistractorSteps = [
 
 const shelfDistractorSteps = [
   "Insert a purple piece at slot 3 of the yellow",
-  "Insert a pink piece at slot 5",
+  "Insert a brown piece at slot 5",
   "Connect the black piece with the 2 green pieces",
 ];
 
 const shelfDistractorRecoverySteps = [
   "remove the purple piece at slot 3, because the size doesn't match",
-  "remove the pink piece at slot 5, because the shape doesn't match",
+  "remove the brown piece at slot 5, because the shape doesn't match",
   "Remove the black piece, because the size doesn't match",
 ];
 
@@ -333,9 +333,12 @@ const randomizedTaskConfigs = {
     distractorSteps: shelfDistractorSteps,
     recoverySteps: shelfDistractorRecoverySteps,
     assistiveSteps: shelfAssistiveByDistractorStep,
+    distractorAudioOverrides: {
+      1: "/audio/shelf-assembly-distractors/shelf_insert_brown_slot5.wav",
+    },
     recoveryAudioOverrides: {
       0: "/audio/shelf-assembly-distractors/shelf_remove_purple_slot3.mp3",
-      1: "/audio/shelf-assembly-distractors/shelf_remove_pink_slot5.mp3",
+      1: "/audio/shelf-assembly-distractors/shelf_remove_brown_slot5.wav",
       2: "/audio/shelf-assembly-distractors/shelf_remove_black_piece.mp3",
     },
     folder: "shelf-assembly-distractors",

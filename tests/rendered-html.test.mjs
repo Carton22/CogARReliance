@@ -167,14 +167,16 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Add water into a cup"/);
   assert.match(page, /shelfDistractorSteps = \[/);
   assert.match(page, /"Insert a purple piece at slot 3 of the yellow"/);
-  assert.match(page, /"Insert a pink piece at slot 5"/);
+  assert.match(page, /"Insert a brown piece at slot 5"/);
+  assert.doesNotMatch(page, /"Insert a pink piece at slot 5"/);
   assert.match(page, /"Connect the black piece with the 2 green pieces"/);
   assert.match(page, /"Connect another yellow piece with the greens and pinks"/);
   assert.doesNotMatch(page, /"Connect a black with the 2 green"/);
   assert.doesNotMatch(page, /"Connect another yellow with the green and pink"/);
   assert.match(page, /shelfDistractorRecoverySteps = \[/);
   assert.match(page, /"remove the purple piece at slot 3, because the size doesn't match"/);
-  assert.match(page, /"remove the pink piece at slot 5, because the shape doesn't match"/);
+  assert.match(page, /"remove the brown piece at slot 5, because the shape doesn't match"/);
+  assert.doesNotMatch(page, /"remove the pink piece at slot 5, because the shape doesn't match"/);
   assert.match(page, /"Remove the black piece, because the size doesn't match"/);
   assert.match(page, /bobaDistractorSteps = \[/);
   assert.match(page, /"grab the left bottle to add white sugar"/);
@@ -235,7 +237,11 @@ test("maps requested shelf and boba cues to matching TTS audio", async () => {
   );
   assert.match(
     page,
-    /1: "\/audio\/shelf-assembly-distractors\/shelf_remove_pink_slot5\.mp3"/,
+    /1: "\/audio\/shelf-assembly-distractors\/shelf_insert_brown_slot5\.wav"/,
+  );
+  assert.match(
+    page,
+    /1: "\/audio\/shelf-assembly-distractors\/shelf_remove_brown_slot5\.wav"/,
   );
   assert.match(
     page,
@@ -288,7 +294,8 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/shelf-assembly-distractors/shelf_C.mp3",
     "../public/audio/shelf-assembly-distractors/shelf_C_recovery.mp3",
     "../public/audio/shelf-assembly-distractors/shelf_remove_purple_slot3.mp3",
-    "../public/audio/shelf-assembly-distractors/shelf_remove_pink_slot5.mp3",
+    "../public/audio/shelf-assembly-distractors/shelf_insert_brown_slot5.wav",
+    "../public/audio/shelf-assembly-distractors/shelf_remove_brown_slot5.wav",
     "../public/audio/shelf-assembly-distractors/shelf_remove_black_piece.mp3",
     "../public/audio/boba-distractors/boba_A.mp3",
     "../public/audio/boba-distractors/boba_B.mp3",
