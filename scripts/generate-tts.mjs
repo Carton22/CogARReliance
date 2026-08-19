@@ -77,7 +77,7 @@ const CHALLENGE_SOURCES = [
     steps: [
       ["Add strawberry sugar syrup into a cup", "public/audio/boba/boba_01_challenge.mp3"],
       ["Add boba", "public/audio/boba/boba_02_challenge.mp3"],
-      ["Add strawberry yogurt as the bottom layer", "public/audio/boba/boba_03_challenge.mp3"],
+      ["Add strawberry yogurt into the cup", "public/audio/boba/boba_03_challenge.mp3"],
       ["Pour matcha latte into the cup", "public/audio/boba/boba_04_challenge.mp3"],
       ["Pour coconut milk into the cup", "public/audio/boba/boba_05_challenge.mp3"],
       ["Add milk cream on the top", "public/audio/boba/boba_06_challenge.mp3"],
@@ -165,7 +165,7 @@ const MANIFEST = [
   },
   {
     id: "C13",
-    text: "Add strawberry yogurt as the bottom layer",
+    text: "Add strawberry yogurt into the cup",
     path: "public/audio/boba/boba_03.mp3",
   },
   {
@@ -237,6 +237,11 @@ const MANIFEST = [
     id: "A08",
     text: "You can add all of them",
     path: "public/audio/assistive/boba/you_can_add_all.wav",
+  },
+  {
+    id: "A20",
+    text: "add half of them",
+    path: "public/audio/assistive/boba/add_half_of_them.mp3",
   },
   {
     id: "A09",

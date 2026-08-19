@@ -207,7 +207,8 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /"Oh, replace the straw with a bigger black straw for boba"/);
   assert.doesNotMatch(page, /"Oh, please remove the lemon piece, because the boba tea is for delivery"/);
   assert.doesNotMatch(page, /"Oh, please remove the lemon piece, because it's for delivery"/);
-  assert.match(page, /"Add strawberry yogurt as the bottom layer"/);
+  assert.match(page, /"Add strawberry yogurt into the cup"/);
+  assert.doesNotMatch(page, /"Add strawberry yogurt as the bottom layer"/);
   assert.match(page, /"Pour matcha latte into the cup"/);
   assert.match(page, /"Pour coconut milk into the cup"/);
   assert.match(page, /"Put a lid on the cup"/);
@@ -223,6 +224,8 @@ test("injects three participant-stable distractors only between the allowed 2-st
   assert.match(page, /shelfAssistiveByDistractorStep/);
   assert.match(page, /"Keep adding more"/);
   assert.match(page, /"You can add all of them"/);
+  assert.match(page, /"add half of them"/);
+  assert.match(page, /audioSrc: "\/audio\/assistive\/boba\/add_half_of_them\.mp3"/);
   assert.match(page, /"Stop pouring"/);
   assert.match(page, /"Insert side A of a green into slot 1 of the yellow"/);
   assert.match(page, /"Insert side A of a green into slot 5 of the yellow"/);
@@ -343,6 +346,7 @@ test("has audio assets for training and configured wrong suggestions", async () 
     "../public/audio/assistive/boba/add_a_bit_more.wav",
     "../public/audio/assistive/boba/you_can_stop_now.wav",
     "../public/audio/assistive/boba/you_can_add_all.wav",
+    "../public/audio/assistive/boba/add_half_of_them.mp3",
     "../public/audio/assistive/boba/add_more.wav",
     "../public/audio/assistive/boba/stop_adding.wav",
     "../public/audio/assistive/boba/keep_pouring.wav",
